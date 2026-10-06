@@ -271,8 +271,16 @@ private fun PatternPanel(
                     val seconds = p.cycleMillis / 1000.0
                     p.copy(
                         mode = mode,
-                        cycleSeconds = if (mode == TimingMode.CYCLE_LENGTH) roundHalf(seconds) else p.cycleSeconds,
-                        cyclesPerMinute = if (mode == TimingMode.PER_MINUTE) roundHalf(60.0 / seconds) else p.cyclesPerMinute,
+                        cycleSeconds = if (mode == TimingMode.CYCLE_LENGTH) {
+                            roundHalf(seconds).coerceIn(BreathPattern.MIN_CYCLE_SECONDS, BreathPattern.MAX_CYCLE_SECONDS)
+                        } else {
+                            p.cycleSeconds
+                        },
+                        cyclesPerMinute = if (mode == TimingMode.PER_MINUTE) {
+                            roundHalf(60.0 / seconds).coerceIn(BreathPattern.MIN_PER_MINUTE, BreathPattern.MAX_PER_MINUTE)
+                        } else {
+                            p.cyclesPerMinute
+                        },
                     )
                 }
             },
