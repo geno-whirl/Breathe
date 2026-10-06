@@ -1,10 +1,8 @@
 package com.genowhirl.breathe.ui
 
 import android.os.SystemClock
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -40,6 +38,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -170,17 +169,17 @@ private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: L
 private fun Controls(session: SessionState, onToggle: () -> Unit, onStop: () -> Unit) {
     val running = session.status == Status.RUNNING
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-        Box(Modifier.size(56.dp), contentAlignment = Alignment.Center) {
-            AnimatedVisibility(session.isActive, enter = fadeIn(), exit = fadeOut()) {
-                IconButton(
-                    onClick = onStop,
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
-                ) {
-                    Icon(painterResource(R.drawable.ic_stop), contentDescription = stringResource(R.string.stop))
-                }
+        val stopAlpha by animateFloatAsState(if (session.isActive) 1f else 0f, label = "stopAlpha")
+        Box(Modifier.size(56.dp).alpha(stopAlpha), contentAlignment = Alignment.Center) {
+            IconButton(
+                onClick = onStop,
+                enabled = session.isActive,
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
+            ) {
+                Icon(painterResource(R.drawable.ic_stop), contentDescription = stringResource(R.string.stop))
             }
         }
         Spacer(Modifier.size(24.dp))
