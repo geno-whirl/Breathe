@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Breathe</string>
+
+    <!-- Stages -->
+    <string name="phase_inhale">Inhale</string>
+    <string name="phase_hold_in">Hold</string>
+    <string name="phase_exhale">Exhale</string>
+    <string name="phase_hold_out">Hold</string>
+    <string name="short_inhale">In</string>
+    <string name="short_hold">Hold</string>
+    <string name="short_exhale">Out</string>
+    <string name="say_inhale">Breathe in</string>
+    <string name="say_exhale">Breathe out</string>
+    <string name="say_hold">Hold</string>
+
+    <!-- Session -->
+    <string name="ready">Ready</string>
+    <string name="paused">Paused</string>
+    <string name="finished">Finished</string>
+    <string name="well_done">Well done</string>
+    <string name="finished_summary">%1$d cycles · %2$s</string>
+    <string name="start">Start</string>
+    <string name="pause">Pause</string>
+    <string name="resume">Resume</string>
+    <string name="stop">Stop</string>
+    <string name="custom_pattern">Custom</string>
+    <string name="status_running">%1$s · cycle %2$d · %3$s</string>
+    <string name="status_idle">%1$s · %2$s s cycle · %3$s / min</string>
+
+    <!-- Pattern -->
+    <string name="pattern">Pattern</string>
+    <string name="mode_seconds">Seconds</string>
+    <string name="mode_cycle">Cycle</string>
+    <string name="mode_per_minute">Per minute</string>
+    <string name="mode_seconds_hint">Each number is the length of its stage in seconds.</string>
+    <string name="cycle_length">Cycle length</string>
+    <string name="breaths_per_minute">Breaths per minute</string>
+    <string name="seconds_short">%1$s s</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="session_length">Session length</string>
+    <string name="endless">Endless</string>
+    <string name="increase">More %1$s</string>
+    <string name="decrease">Less %1$s</string>
+    <string name="save_preset">Save as preset</string>
+    <string name="preset_name_hint">Name</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="delete">Delete</string>
+    <string name="delete_preset_title">Delete “%1$s”?</string>
+    <string name="delete_preset_text">The preset is removed from the list and the widget. Built-in presets can be restored in Settings.</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="sound">Sound</string>
+    <string name="sound_cues">Sound cues</string>
+    <string name="sound_bowl">Bowl</string>
+    <string name="sound_chime">Chime</string>
+    <string name="sound_soft">Soft</string>
+    <string name="sound_wood">Wood</string>
+    <string name="sound_voice">Voice</string>
+    <string name="volume">Volume</string>
+    <string name="cue_on_holds">Cue holds too</string>
+    <string name="tick_seconds">Tick every second</string>
+    <string name="tick_seconds_hint">A faint click to help you count</string>
+    <string name="vibration">Vibration</string>
+    <string name="vibration_cues">Vibration cues</string>
+    <string name="vibration_pulses">Pulses</string>
+    <string name="vibration_wave">Wave</string>
+    <string name="vibration_pulses_hint">One pulse to breathe in, two to breathe out, a tap for holds.</string>
+    <string name="vibration_wave_hint">Vibration swells as you breathe in and fades as you breathe out. Needs a phone that can vary vibration strength.</string>
+    <string name="strength">Strength</string>
+    <string name="animation">Animation</string>
+    <string name="animation_enabled">Animate</string>
+    <string name="animation_orb">Orb</string>
+    <string name="animation_box">Box</string>
+    <string name="animation_ring">Ring</string>
+    <string name="natural_easing">Natural pace</string>
+    <string name="natural_easing_hint">Ease in and out of each breath instead of moving at a constant speed</string>
+    <string name="show_countdown">Show countdown</string>
+    <string name="session">Session</string>
+    <string name="keep_screen_on">Keep screen on</string>
+    <string name="keep_screen_on_hint">While a session runs with the app open</string>
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="locked_phone">Locked phone</string>
+    <string name="locked_phone_text">Sessions keep running with the screen off or locked, guided by sound and vibration. Pause or stop them from the notification. If a session stops on its own, set the app\'s battery usage to Unrestricted.</string>
+    <string name="open_app_settings">App settings</string>
+    <string name="restore_presets">Restore built-in presets</string>
+
+    <!-- Notification and widget -->
+    <string name="channel_name">Breathing session</string>
+    <string name="channel_description">Shows the running session and its controls</string>
+    <string name="notification_detail">%1$s · cycle %2$d</string>
+    <string name="widget_description">Start, pause and follow a breathing session, switch presets and toggle sound or vibration.</string>
+    <string name="widget_running_detail">%1$s · cycle %2$d</string>
+    <string name="widget_idle_detail">%1$s s cycle · %2$s / min</string>
+    <string name="previous_preset">Previous preset</string>
+    <string name="next_preset">Next preset</string>
+</resources>

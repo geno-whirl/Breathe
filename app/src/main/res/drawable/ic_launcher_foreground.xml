@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Three soft rings, like a breath expanding. -->
+    <path
+        android:fillColor="#336E9FF0"
+        android:pathData="M54,22a32,32 0 1,1 -0.01,0z" />
+    <path
+        android:fillColor="#59B39DF0"
+        android:pathData="M54,32a22,22 0 1,1 -0.01,0z" />
+    <path
+        android:fillColor="#FF6FD3BE"
+        android:pathData="M54,41a13,13 0 1,1 -0.01,0z" />
+</vector>
