@@ -78,8 +78,8 @@
     <string name="vibration_cues">Vibration cues</string>
     <string name="vibration_pulses">Pulses</string>
     <string name="vibration_wave">Wave</string>
-    <string name="vibration_pulses_hint">One pulse to breathe in, two to breathe out, a tap for holds.</string>
-    <string name="vibration_wave_hint">Vibration swells as you breathe in and fades as you breathe out. Needs a phone that can vary vibration strength.</string>
+    <string name="vibration_pulses_hint">A rising double tap to breathe in, a falling one to breathe out, a soft tap for holds. Uses your phone\'s built-in haptic effects when it has them.</string>
+    <string name="vibration_wave_hint">Soft taps that grow stronger and closer together as you breathe in, then fade and slow down as you breathe out, so you can follow with your eyes closed.</string>
     <string name="strength">Strength</string>
     <string name="animation">Animation</string>
     <string name="animation_enabled">Animate</string>

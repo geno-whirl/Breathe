@@ -17,8 +17,8 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 **Sound**: Bowl, Chime, Soft, Wood (marimba) or spoken Voice cues. The tones are synthesised on the device like the real instruments (struck, decaying partials with a soft mallet and a small stereo room), in A major pentatonic so every cue sounds good with the others, with a volume setting, an option to cue the holds, and an optional faint tick every second.
 
 **Vibration**
-- **Pulses**: one pulse to breathe in, two to breathe out, a tap for holds.
-- **Wave**: vibration swells through the inhale and fades through the exhale, so you can follow it with your eyes closed.
+- **Pulses**: a rising double tap to breathe in, a falling one to breathe out, a soft tap for holds. Uses the phone's factory-tuned haptic effects when available.
+- **Wave**: soft taps that grow stronger and closer together through the inhale, then fade and slow through the exhale, so you can follow with your eyes closed.
 - Adjustable strength.
 
 **Animation**
