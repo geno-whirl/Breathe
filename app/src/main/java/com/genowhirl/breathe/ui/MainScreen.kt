@@ -11,14 +11,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -26,12 +26,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -42,6 +43,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -54,10 +56,12 @@ import com.genowhirl.breathe.model.AppSettings
 import com.genowhirl.breathe.model.BreathPattern
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.Preset
+import com.genowhirl.breathe.model.SessionLength
 import com.genowhirl.breathe.model.TimingMode
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import kotlinx.coroutines.delay
 
+/** Everything on one screen: the breathing visual takes whatever height is left. */
 @Composable
 fun MainScreen(
     session: SessionState,
@@ -75,73 +79,77 @@ fun MainScreen(
 ) {
     Column(
         Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
+            .fillMaxSize()
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Top bar
-        Row(
-            Modifier.fillMaxWidth().padding(top = 8.dp, start = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.weight(1f),
-            )
-            IconButton(onClick = { onSettings { it.copy(soundEnabled = !it.soundEnabled) } }) {
-                Icon(
-                    painterResource(if (settings.soundEnabled) R.drawable.ic_volume_up else R.drawable.ic_volume_off),
-                    contentDescription = stringResource(R.string.sound),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (settings.soundEnabled) 0.9f else 0.45f),
-                )
-            }
-            IconButton(onClick = { onSettings { it.copy(vibrationEnabled = !it.vibrationEnabled) } }) {
-                Icon(
-                    painterResource(if (settings.vibrationEnabled) R.drawable.ic_vibration else R.drawable.ic_vibration_off),
-                    contentDescription = stringResource(R.string.vibration),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (settings.vibrationEnabled) 0.9f else 0.45f),
-                )
-            }
-            IconButton(onClick = onOpenSettings) {
-                Icon(painterResource(R.drawable.ic_tune), contentDescription = stringResource(R.string.settings))
-            }
-        }
+        TopBar(settings, onSettings, onOpenSettings)
 
         BreathVisual(
             state = session,
             pattern = pattern,
             settings = settings,
             modifier = Modifier
-                .widthIn(max = 380.dp)
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .padding(8.dp),
+                .weight(1f)
+                .heightIn(min = 120.dp)
+                .fillMaxWidth(),
         )
 
-        StatusLine(session, pattern, presets)
-
-        Spacer(Modifier.height(16.dp))
-        Controls(session, onToggle, onStop)
-        Spacer(Modifier.height(24.dp))
+        StatusLine(session, pattern, presets, settings)
+        Spacer(Modifier.height(10.dp))
+        Controls(session, settings, onToggle, onStop, onSettings)
+        Spacer(Modifier.height(14.dp))
 
         PatternPanel(
             pattern = pattern,
             presets = presets,
-            settings = settings,
             onPattern = onPattern,
-            onSettings = onSettings,
             onApplyPreset = onApplyPreset,
             onSavePreset = onSavePreset,
             onDeletePreset = onDeletePreset,
         )
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(10.dp))
     }
 }
 
 @Composable
-private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: List<Preset>) {
+private fun TopBar(
+    settings: AppSettings,
+    onSettings: ((AppSettings) -> AppSettings) -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(start = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.app_name),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = { onSettings { it.copy(soundEnabled = !it.soundEnabled) } }) {
+            Icon(
+                painterResource(if (settings.soundEnabled) R.drawable.ic_volume_up else R.drawable.ic_volume_off),
+                contentDescription = stringResource(R.string.sound),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (settings.soundEnabled) 0.9f else 0.45f),
+            )
+        }
+        IconButton(onClick = { onSettings { it.copy(vibrationEnabled = !it.vibrationEnabled) } }) {
+            Icon(
+                painterResource(if (settings.vibrationEnabled) R.drawable.ic_vibration else R.drawable.ic_vibration_off),
+                contentDescription = stringResource(R.string.vibration),
+                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (settings.vibrationEnabled) 0.9f else 0.45f),
+            )
+        }
+        IconButton(onClick = onOpenSettings) {
+            Icon(painterResource(R.drawable.ic_tune), contentDescription = stringResource(R.string.settings))
+        }
+    }
+}
+
+@Composable
+private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: List<Preset>, settings: AppSettings) {
+    val context = LocalContext.current
     val preset = presets.firstOrNull { it.pattern.sameRhythmAs(pattern) }
     val name = preset?.name ?: stringResource(R.string.custom_pattern)
     var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
@@ -153,7 +161,13 @@ private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: L
         now = SystemClock.elapsedRealtime()
     }
     val text = if (session.isActive) {
-        stringResource(R.string.status_running, name, session.cycle, formatClock(session.activeMillis(now)))
+        val elapsed = formatClock(session.activeMillis(now))
+        val time = if (settings.sessionLength == SessionLength.MINUTES) {
+            stringResource(R.string.elapsed_of, elapsed, formatClock(settings.sessionMinutes * 60_000L))
+        } else {
+            elapsed
+        }
+        stringResource(R.string.status_running, name, cycleLabel(context.resources, session.cycle, settings), time)
     } else {
         stringResource(
             R.string.status_idle,
@@ -162,35 +176,42 @@ private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: L
             formatSeconds(pattern.breathsPerMinute),
         )
     }
-    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
 }
 
 @Composable
-private fun Controls(session: SessionState, onToggle: () -> Unit, onStop: () -> Unit) {
+private fun Controls(
+    session: SessionState,
+    settings: AppSettings,
+    onToggle: () -> Unit,
+    onStop: () -> Unit,
+    onSettings: ((AppSettings) -> AppSettings) -> Unit,
+) {
     val running = session.status == Status.RUNNING
+    var editingLength by remember { mutableStateOf(false) }
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
         val stopAlpha by animateFloatAsState(if (session.isActive) 1f else 0f, label = "stopAlpha")
-        Box(Modifier.size(56.dp).alpha(stopAlpha), contentAlignment = Alignment.Center) {
+        Box(Modifier.width(72.dp).alpha(stopAlpha), contentAlignment = Alignment.Center) {
             IconButton(
                 onClick = onStop,
                 enabled = session.isActive,
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(50.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)),
             ) {
                 Icon(painterResource(R.drawable.ic_stop), contentDescription = stringResource(R.string.stop))
             }
         }
-        Spacer(Modifier.size(24.dp))
+        Spacer(Modifier.width(20.dp))
         val accent by animateColorAsState(
             if (session.isActive) PhaseColors.of(session.phase) else PhaseColors.inhale,
             label = "playAccent",
         )
         Box(
             Modifier
-                .size(80.dp)
-                .shadow(16.dp, CircleShape, ambientColor = accent, spotColor = accent)
+                .size(72.dp)
+                .shadow(14.dp, CircleShape, ambientColor = accent, spotColor = accent)
                 .clip(CircleShape)
                 .background(accent)
                 .clickable(role = Role.Button, onClick = onToggle),
@@ -200,21 +221,103 @@ private fun Controls(session: SessionState, onToggle: () -> Unit, onStop: () -> 
                 painterResource(if (running) R.drawable.ic_pause else R.drawable.ic_play),
                 contentDescription = stringResource(if (running) R.string.pause else R.string.start),
                 tint = Color(0xFF0B1020),
-                modifier = Modifier.size(36.dp),
+                modifier = Modifier.size(34.dp),
             )
         }
-        Spacer(Modifier.size(24.dp))
-        Spacer(Modifier.size(56.dp))
+        Spacer(Modifier.width(20.dp))
+        SessionLengthButton(settings, Modifier.width(72.dp)) { editingLength = true }
     }
+    if (editingLength) {
+        SessionLengthDialog(settings, onSettings) { editingLength = false }
+    }
+}
+
+/** Shows how long the session lasts (endless, minutes or cycles); tap to change it. */
+@Composable
+private fun SessionLengthButton(settings: AppSettings, modifier: Modifier, onClick: () -> Unit) {
+    val (value, unit) = when (settings.sessionLength) {
+        SessionLength.ENDLESS -> "∞" to stringResource(R.string.endless_short)
+        SessionLength.MINUTES -> settings.sessionMinutes.toString() to stringResource(R.string.unit_minutes)
+        SessionLength.CYCLES -> settings.sessionCycles.toString() to stringResource(R.string.unit_cycles)
+    }
+    Column(
+        modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(value, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+        Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+    }
+}
+
+@Composable
+private fun SessionLengthDialog(
+    settings: AppSettings,
+    onSettings: ((AppSettings) -> AppSettings) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.session_length)) },
+        text = {
+            Column {
+                ChoiceRow(
+                    options = SessionLength.entries,
+                    selected = settings.sessionLength,
+                    label = {
+                        stringResource(
+                            when (it) {
+                                SessionLength.ENDLESS -> R.string.endless
+                                SessionLength.MINUTES -> R.string.length_minutes
+                                SessionLength.CYCLES -> R.string.length_cycles
+                            },
+                        )
+                    },
+                    onSelect = { length -> onSettings { it.copy(sessionLength = length) } },
+                )
+                Spacer(Modifier.height(12.dp))
+                when (settings.sessionLength) {
+                    SessionLength.ENDLESS -> Text(
+                        stringResource(R.string.endless_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+                    )
+                    SessionLength.MINUTES -> ValueStepper(
+                        title = stringResource(R.string.length_minutes),
+                        value = settings.sessionMinutes.toDouble(),
+                        display = stringResource(R.string.minutes_short, settings.sessionMinutes),
+                        step = 1.0,
+                        min = 1.0,
+                        max = 240.0,
+                        decimals = false,
+                        onChange = { v -> onSettings { it.copy(sessionMinutes = v.toInt()) } },
+                    )
+                    SessionLength.CYCLES -> ValueStepper(
+                        title = stringResource(R.string.length_cycles),
+                        value = settings.sessionCycles.toDouble(),
+                        display = settings.sessionCycles.toString(),
+                        step = 1.0,
+                        min = 1.0,
+                        max = 999.0,
+                        decimals = false,
+                        onChange = { v -> onSettings { it.copy(sessionCycles = v.toInt()) } },
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) } },
+    )
 }
 
 @Composable
 private fun PatternPanel(
     pattern: BreathPattern,
     presets: List<Preset>,
-    settings: AppSettings,
     onPattern: ((BreathPattern) -> BreathPattern) -> Unit,
-    onSettings: ((AppSettings) -> AppSettings) -> Unit,
     onApplyPreset: (Preset) -> Unit,
     onSavePreset: (String) -> Unit,
     onDeletePreset: (Preset) -> Unit,
@@ -222,113 +325,112 @@ private fun PatternPanel(
     var saving by remember { mutableStateOf(false) }
     var deleting by remember { mutableStateOf<Preset?>(null) }
 
-    SectionCard(stringResource(R.string.pattern)) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            presets.forEach { preset ->
-                PillButton(
-                    text = preset.name,
-                    selected = preset.pattern.sameRhythmAs(pattern),
-                    accent = MaterialTheme.colorScheme.primary,
-                    onClick = { onApplyPreset(preset) },
-                    onLongClick = { deleting = preset },
-                )
-            }
-            IconButton(onClick = { saving = true }) {
-                Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = stringResource(R.string.save_preset))
-            }
-        }
-
-        Spacer(Modifier.height(18.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Phase.entries.forEach { phase ->
-                PhaseStepper(phase, pattern, onPattern, Modifier.weight(1f))
-            }
-        }
-
-        Spacer(Modifier.height(18.dp))
-        ChoiceRow(
-            options = TimingMode.entries,
-            selected = pattern.mode,
-            label = {
-                stringResource(
-                    when (it) {
-                        TimingMode.SECONDS -> R.string.mode_seconds
-                        TimingMode.CYCLE_LENGTH -> R.string.mode_cycle
-                        TimingMode.PER_MINUTE -> R.string.mode_per_minute
-                    },
-                )
-            },
-            onSelect = { mode ->
-                onPattern { p ->
-                    // Carry the current rhythm over so switching modes does not change the timing.
-                    val seconds = p.cycleMillis / 1000.0
-                    p.copy(
-                        mode = mode,
-                        cycleSeconds = if (mode == TimingMode.CYCLE_LENGTH) {
-                            roundHalf(seconds).coerceIn(BreathPattern.MIN_CYCLE_SECONDS, BreathPattern.MAX_CYCLE_SECONDS)
-                        } else {
-                            p.cycleSeconds
-                        },
-                        cyclesPerMinute = if (mode == TimingMode.PER_MINUTE) {
-                            roundHalf(60.0 / seconds).coerceIn(BreathPattern.MIN_PER_MINUTE, BreathPattern.MAX_PER_MINUTE)
-                        } else {
-                            p.cyclesPerMinute
-                        },
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+    ) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                presets.forEach { preset ->
+                    PillButton(
+                        text = preset.name,
+                        selected = preset.pattern.sameRhythmAs(pattern),
+                        accent = MaterialTheme.colorScheme.primary,
+                        onClick = { onApplyPreset(preset) },
+                        onLongClick = { deleting = preset },
                     )
                 }
-            },
-        )
+                IconButton(onClick = { saving = true }, modifier = Modifier.size(40.dp)) {
+                    Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = stringResource(R.string.save_preset))
+                }
+            }
 
-        Spacer(Modifier.height(8.dp))
-        when (pattern.mode) {
-            TimingMode.SECONDS -> Text(
-                stringResource(R.string.mode_seconds_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Phase.entries.forEach { phase ->
+                    PhaseStepper(phase, pattern, onPattern, Modifier.weight(1f))
+                }
+            }
+
+            Spacer(Modifier.height(10.dp))
+            ChoiceRow(
+                options = TimingMode.entries,
+                selected = pattern.mode,
+                label = {
+                    stringResource(
+                        when (it) {
+                            TimingMode.SECONDS -> R.string.mode_seconds
+                            TimingMode.CYCLE_LENGTH -> R.string.mode_cycle
+                            TimingMode.PER_MINUTE -> R.string.mode_per_minute
+                        },
+                    )
+                },
+                onSelect = { mode ->
+                    onPattern { p ->
+                        // Carry the current rhythm over so switching modes does not change the timing.
+                        val seconds = p.cycleMillis / 1000.0
+                        p.copy(
+                            mode = mode,
+                            cycleSeconds = if (mode == TimingMode.CYCLE_LENGTH) {
+                                roundHalf(seconds).coerceIn(BreathPattern.MIN_CYCLE_SECONDS, BreathPattern.MAX_CYCLE_SECONDS)
+                            } else {
+                                p.cycleSeconds
+                            },
+                            cyclesPerMinute = if (mode == TimingMode.PER_MINUTE) {
+                                roundHalf(60.0 / seconds).coerceIn(BreathPattern.MIN_PER_MINUTE, BreathPattern.MAX_PER_MINUTE)
+                            } else {
+                                p.cyclesPerMinute
+                            },
+                        )
+                    }
+                },
             )
-            TimingMode.CYCLE_LENGTH -> ValueStepper(
-                title = stringResource(R.string.cycle_length),
-                value = pattern.cycleSeconds,
-                display = stringResource(R.string.seconds_short, formatSeconds(pattern.cycleSeconds)),
-                step = 0.5,
-                min = BreathPattern.MIN_CYCLE_SECONDS,
-                max = BreathPattern.MAX_CYCLE_SECONDS,
-                decimals = true,
-                onChange = { v -> onPattern { it.copy(cycleSeconds = v) } },
-            )
-            TimingMode.PER_MINUTE -> ValueStepper(
-                title = stringResource(R.string.breaths_per_minute),
-                value = pattern.cyclesPerMinute,
-                display = formatSeconds(pattern.cyclesPerMinute),
-                step = 0.5,
-                min = BreathPattern.MIN_PER_MINUTE,
-                max = BreathPattern.MAX_PER_MINUTE,
-                decimals = true,
-                onChange = { v -> onPattern { it.copy(cyclesPerMinute = v) } },
-            )
+
+            Spacer(Modifier.height(4.dp))
+            when (pattern.mode) {
+                TimingMode.SECONDS -> Row(
+                    Modifier.fillMaxWidth().height(44.dp).padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(
+                            R.string.cycle_summary,
+                            formatSeconds(pattern.cycleMillis / 1000.0),
+                            formatSeconds(pattern.breathsPerMinute),
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                TimingMode.CYCLE_LENGTH -> ValueStepper(
+                    title = stringResource(R.string.cycle_length),
+                    value = pattern.cycleSeconds,
+                    display = stringResource(R.string.seconds_short, formatSeconds(pattern.cycleSeconds)),
+                    step = 0.5,
+                    min = BreathPattern.MIN_CYCLE_SECONDS,
+                    max = BreathPattern.MAX_CYCLE_SECONDS,
+                    decimals = true,
+                    onChange = { v -> onPattern { it.copy(cycleSeconds = v) } },
+                )
+                TimingMode.PER_MINUTE -> ValueStepper(
+                    title = stringResource(R.string.breaths_per_minute),
+                    value = pattern.cyclesPerMinute,
+                    display = formatSeconds(pattern.cyclesPerMinute),
+                    step = 0.5,
+                    min = BreathPattern.MIN_PER_MINUTE,
+                    max = BreathPattern.MAX_PER_MINUTE,
+                    decimals = true,
+                    onChange = { v -> onPattern { it.copy(cyclesPerMinute = v) } },
+                )
+            }
         }
-
-        ValueStepper(
-            title = stringResource(R.string.session_length),
-            value = settings.sessionMinutes.toDouble(),
-            display = if (settings.sessionMinutes == 0) {
-                stringResource(R.string.endless)
-            } else {
-                stringResource(R.string.minutes_short, settings.sessionMinutes)
-            },
-            step = 1.0,
-            min = 0.0,
-            max = 180.0,
-            decimals = false,
-            onChange = { v -> onSettings { it.copy(sessionMinutes = v.toInt()) } },
-        )
     }
 
     if (saving) {
@@ -389,37 +491,31 @@ private fun PhaseStepper(
             Spacer(Modifier.size(6.dp))
             Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Spacer(Modifier.height(8.dp))
-        StepButton(R.drawable.ic_add, stringResource(R.string.increase, label), enabled = value < BreathPattern.MAX_UNITS) {
+        Spacer(Modifier.height(4.dp))
+        StepButton(R.drawable.ic_add, stringResource(R.string.increase, label), enabled = value < BreathPattern.MAX_UNITS, size = 32.dp) {
             onPattern { latest.withUnits(phase, latest.units(phase) + 1) }
         }
         Box(
             Modifier
-                .padding(vertical = 4.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .clickable { editing = true }
-                .padding(horizontal = 12.dp, vertical = 2.dp),
+                .padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 value.toString(),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Light,
                 color = if (value == 0) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.onSurface,
             )
         }
-        StepButton(R.drawable.ic_remove, stringResource(R.string.decrease, label), enabled = value > 0) {
+        StepButton(R.drawable.ic_remove, stringResource(R.string.decrease, label), enabled = value > 0, size = 32.dp) {
             onPattern { latest.withUnits(phase, latest.units(phase) - 1) }
         }
-        Spacer(Modifier.height(6.dp))
-        val seconds = pattern.phaseMillis(phase) / 1000.0
+        Spacer(Modifier.height(2.dp))
         Text(
-            if (pattern.mode == TimingMode.SECONDS) {
-                stringResource(R.string.seconds_short, value.toString())
-            } else {
-                stringResource(R.string.seconds_short, formatSeconds(seconds, 1))
-            },
-            style = MaterialTheme.typography.bodySmall,
+            stringResource(R.string.seconds_short, formatSeconds(pattern.phaseMillis(phase) / 1000.0, 1)),
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }

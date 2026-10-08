@@ -1,5 +1,9 @@
 package com.genowhirl.breathe.ui
 
+import android.content.res.Resources
+import com.genowhirl.breathe.R
+import com.genowhirl.breathe.model.AppSettings
+import com.genowhirl.breathe.model.SessionLength
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -15,3 +19,11 @@ fun formatClock(millis: Long): String {
     val s = total % 60
     return if (h > 0) "%d:%02d:%02d".format(h, m, s) else "%d:%02d".format(m, s)
 }
+
+/** "cycle 3", or "cycle 3 of 20" when the session is a number of cycles. */
+fun cycleLabel(res: Resources, cycle: Int, settings: AppSettings): String =
+    if (settings.sessionLength == SessionLength.CYCLES) {
+        res.getString(R.string.cycle_n_of, cycle, settings.sessionCycles)
+    } else {
+        res.getString(R.string.cycle_n, cycle)
+    }

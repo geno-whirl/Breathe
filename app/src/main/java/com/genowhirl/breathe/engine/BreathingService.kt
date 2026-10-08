@@ -24,7 +24,9 @@ import com.genowhirl.breathe.model.BreathRunner
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.RunnerEvent
 import com.genowhirl.breathe.model.VibrationMode
+import com.genowhirl.breathe.model.sessionLimit
 import com.genowhirl.breathe.ui.MainActivity
+import com.genowhirl.breathe.ui.cycleLabel
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import com.genowhirl.breathe.widget.BreathWidget
 import kotlinx.coroutines.CoroutineScope
@@ -101,7 +103,7 @@ class BreathingService : Service() {
     private fun startSession(now: Long) {
         val r = BreathRunner(
             pattern = { store.pattern.value },
-            sessionLimitMs = { store.settings.value.sessionMinutes * 60_000L },
+            limit = { store.settings.value.sessionLimit },
         )
         runner = r
         acquireWakeLock()
@@ -257,7 +259,7 @@ class BreathingService : Service() {
             Status.RUNNING -> getString(phaseLabel(state.phase))
             else -> getString(R.string.app_name)
         }
-        val text = getString(R.string.notification_detail, presetName, state.cycle)
+        val text = getString(R.string.notification_detail, presetName, cycleLabel(resources, state.cycle, settings))
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_breath)
             .setContentTitle(title)

@@ -17,7 +17,7 @@ sealed interface RunnerEvent {
  */
 class BreathRunner(
     private val pattern: () -> BreathPattern,
-    private val sessionLimitMs: () -> Long = { 0L },
+    private val limit: () -> SessionLimit = { SessionLimit() },
 ) {
     var phase: Phase = Phase.INHALE
         private set
@@ -84,9 +84,11 @@ class BreathRunner(
             val durations = pattern().phaseMillis()
             val next = firstNonEmpty(durations, phase.next)
             if (next.ordinal <= phase.ordinal) {
-                // Wrapped around: a cycle was completed.
-                val limit = sessionLimitMs()
-                if (limit > 0 && activeBeforePhase >= limit) {
+                // Wrapped around: cycle number [cycle] was completed.
+                val l = limit()
+                val timeUp = l.millis > 0 && activeBeforePhase >= l.millis
+                val cyclesDone = l.cycles > 0 && cycle >= l.cycles
+                if (timeUp || cyclesDone) {
                     isFinished = true
                     phaseStart = boundary
                     phaseDuration = 0

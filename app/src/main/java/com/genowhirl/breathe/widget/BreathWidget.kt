@@ -23,6 +23,7 @@ import com.genowhirl.breathe.engine.Status
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.breathLevel
 import com.genowhirl.breathe.ui.MainActivity
+import com.genowhirl.breathe.ui.cycleLabel
 import com.genowhirl.breathe.ui.formatSeconds
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import kotlin.math.ceil
@@ -122,7 +123,7 @@ object BreathWidget {
         views.setTextViewText(R.id.countdown, countdown)
 
         val subtitle = if (active) {
-            context.getString(R.string.widget_running_detail, presetName, state.cycle)
+            context.getString(R.string.widget_running_detail, presetName, cycleLabel(context.resources, state.cycle, settings))
         } else {
             context.getString(
                 R.string.widget_idle_detail,

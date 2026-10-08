@@ -111,7 +111,7 @@ private fun BreatheApp(store: Store) {
         AnimatedContent(
             targetState = showSettings,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
-            modifier = Modifier.safeDrawingPadding(),
+            modifier = Modifier.fillMaxSize().safeDrawingPadding(),
             label = "screen",
         ) { settingsVisible ->
             if (settingsVisible) {

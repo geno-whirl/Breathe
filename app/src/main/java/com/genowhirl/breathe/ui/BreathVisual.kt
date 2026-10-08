@@ -9,7 +9,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,8 +54,6 @@ import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
-
-private val Ink = Color(0xFF0B1020)
 
 @Composable
 fun BreathVisual(
@@ -108,7 +105,8 @@ fun BreathVisual(
         0f
     }
 
-    Box(modifier, contentAlignment = Alignment.Center) {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val compact = min(maxWidth.value, maxHeight.value) < 300f
         if (animate) {
             Canvas(Modifier.fillMaxSize()) {
                 val shownLevel = if (active) level else 0.38f + 0.12f * idlePulse
@@ -123,8 +121,7 @@ fun BreathVisual(
             }
         }
 
-        val onOrb = animate && settings.animationStyle == AnimationStyle.ORB
-        val textColor = if (onOrb) Ink.copy(alpha = 0.86f) else MaterialTheme.colorScheme.onBackground
+        val textColor = MaterialTheme.colorScheme.onBackground
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val label = when (state.status) {
                 Status.RUNNING -> stringResource(BreathingService.phaseLabel(phase))
@@ -135,14 +132,14 @@ fun BreathVisual(
             Text(
                 label,
                 style = PhaseLabelStyle,
-                color = if (onOrb || !active) textColor else color,
+                color = textColor,
                 textAlign = TextAlign.Center,
             )
             if (active && settings.showCountdown) {
                 val seconds = ceil(state.phaseRemaining(now) / 1000.0).toInt().coerceAtLeast(0)
                 Text(
                     seconds.toString(),
-                    style = if (onOrb) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
+                    style = if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
                     color = textColor,
                 )
             } else if (state.status == Status.FINISHED) {
@@ -225,27 +222,39 @@ private fun phaseAt(durations: LongArray, cycle: Long, position: Float): Phase {
 
 /** A glowing orb that grows with the in-breath and shrinks with the out-breath. */
 private fun DrawScope.drawOrb(level: Float, color: Color, glow: Color) {
-    val maxR = size.minDimension / 2 - 30.dp.toPx()
-    val minR = maxR * 0.48f
+    val maxR = size.minDimension / 2 - 28.dp.toPx()
+    val minR = maxR * 0.5f
     val r = minR + (maxR - minR) * level
+    // Soft halo around the bubble.
     drawCircle(
         Brush.radialGradient(
-            listOf(glow.copy(alpha = 0.55f), color.copy(alpha = 0.18f), Color.Transparent),
+            listOf(glow.copy(alpha = 0.45f), color.copy(alpha = 0.16f), Color.Transparent),
             center,
-            r * 1.45f,
+            r * 1.5f,
         ),
-        r * 1.45f,
+        r * 1.5f,
     )
+    // A translucent bubble, clear in the middle and denser toward the rim, so text over it
+    // keeps the contrast of the background in both themes.
     drawCircle(
         Brush.radialGradient(
-            listOf(lerp(color, Color.White, 0.55f), color, lerp(color, glow, 0.35f)),
-            center + Offset(-r * 0.25f, -r * 0.3f),
-            r * 1.5f,
+            listOf(color.copy(alpha = 0.08f), color.copy(alpha = 0.18f), color.copy(alpha = 0.42f)),
+            center,
+            r,
         ),
         r,
     )
-    drawCircle(Color.White.copy(alpha = 0.35f), r, style = Stroke(1.5.dp.toPx()))
-    drawCircle(Color.White.copy(alpha = 0.12f), r * 0.82f, style = Stroke(1.dp.toPx()))
+    drawCircle(color.copy(alpha = 0.9f), r, style = Stroke(2.dp.toPx()))
+    val inset = r * 0.86f
+    drawArc(
+        color = Color.White.copy(alpha = 0.28f),
+        startAngle = 200f,
+        sweepAngle = 55f,
+        useCenter = false,
+        topLeft = Offset(center.x - inset, center.y - inset),
+        size = Size(inset * 2, inset * 2),
+        style = Stroke(3.dp.toPx(), cap = StrokeCap.Round),
+    )
 }
 
 /**
@@ -270,7 +279,7 @@ private fun DrawScope.drawBox(
     clipPath(shape) {
         val fillTop = rect.bottom - side * level
         drawRect(
-            Brush.verticalGradient(listOf(color.copy(alpha = 0.55f), color.copy(alpha = 0.18f)), fillTop, rect.bottom),
+            Brush.verticalGradient(listOf(color.copy(alpha = 0.38f), color.copy(alpha = 0.12f)), fillTop, rect.bottom),
             topLeft = Offset(rect.left, fillTop),
             size = Size(side, rect.bottom - fillTop),
         )

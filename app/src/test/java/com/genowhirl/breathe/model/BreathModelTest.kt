@@ -84,12 +84,29 @@ class BreathRunnerTest {
 
     @Test
     fun finishesAtTheEndOfTheCycleThatReachesTheLimit() {
-        val runner = BreathRunner({ BreathPattern(3, 0, 3, 0) }, { 10_000L })
+        val runner = BreathRunner({ BreathPattern(3, 0, 3, 0) }, { SessionLimit(millis = 10_000L) })
         runner.start(0)
         val events = runner.update(12_000)
         // Cycle 1 ends at 6 s (below the limit), cycle 2 ends at 12 s (limit reached).
         assertEquals(RunnerEvent.Finished, events.last())
         assertTrue(runner.isFinished)
+    }
+
+    @Test
+    fun finishesAfterTheRequestedNumberOfCycles() {
+        val runner = BreathRunner({ BreathPattern(2, 0, 2, 0) }, { SessionLimit(cycles = 3) })
+        runner.start(0)
+        assertTrue(runner.update(11_999).none { it is RunnerEvent.Finished })
+        assertEquals(3, runner.cycle)
+        assertEquals(RunnerEvent.Finished, runner.update(12_000).last())
+        assertEquals(12_000L, runner.activeMillis(12_000))
+    }
+
+    @Test
+    fun sessionLengthSettingMapsToALimit() {
+        assertEquals(SessionLimit(), AppSettings().sessionLimit)
+        assertEquals(SessionLimit(millis = 300_000L), AppSettings(sessionLength = SessionLength.MINUTES, sessionMinutes = 5).sessionLimit)
+        assertEquals(SessionLimit(cycles = 8), AppSettings(sessionLength = SessionLength.CYCLES, sessionCycles = 8).sessionLimit)
     }
 
     @Test

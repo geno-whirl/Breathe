@@ -6,6 +6,7 @@ import com.genowhirl.breathe.model.AppSettings
 import com.genowhirl.breathe.model.BreathPattern
 import com.genowhirl.breathe.model.BuiltInPresets
 import com.genowhirl.breathe.model.Preset
+import com.genowhirl.breathe.model.SessionLength
 import com.genowhirl.breathe.widget.BreathWidget
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -133,7 +134,16 @@ class Store private constructor(private val context: Context) {
                 animationStyle = enumOr(o.optString("animationStyle"), d.animationStyle),
                 naturalEasing = o.optBoolean("naturalEasing", d.naturalEasing),
                 showCountdown = o.optBoolean("showCountdown", d.showCountdown),
-                sessionMinutes = o.optInt("sessionMinutes", d.sessionMinutes),
+                // Older versions stored only minutes, with 0 meaning endless.
+                sessionLength = if (o.has("sessionLength")) {
+                    enumOr(o.optString("sessionLength"), d.sessionLength)
+                } else if (o.optInt("sessionMinutes", 0) > 0) {
+                    SessionLength.MINUTES
+                } else {
+                    SessionLength.ENDLESS
+                },
+                sessionMinutes = o.optInt("sessionMinutes", d.sessionMinutes).takeIf { it > 0 } ?: d.sessionMinutes,
+                sessionCycles = o.optInt("sessionCycles", d.sessionCycles).takeIf { it > 0 } ?: d.sessionCycles,
                 keepScreenOn = o.optBoolean("keepScreenOn", d.keepScreenOn),
                 theme = enumOr(o.optString("theme"), d.theme),
             )
@@ -154,7 +164,9 @@ class Store private constructor(private val context: Context) {
         .put("animationStyle", s.animationStyle.name)
         .put("naturalEasing", s.naturalEasing)
         .put("showCountdown", s.showCountdown)
+        .put("sessionLength", s.sessionLength.name)
         .put("sessionMinutes", s.sessionMinutes)
+        .put("sessionCycles", s.sessionCycles)
         .put("keepScreenOn", s.keepScreenOn)
         .put("theme", s.theme.name)
 

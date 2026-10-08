@@ -14,6 +14,9 @@ enum class AnimationStyle { ORB, BOX, MINIMAL }
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+/** How long a session lasts. */
+enum class SessionLength { ENDLESS, MINUTES, CYCLES }
+
 data class AppSettings(
     val soundEnabled: Boolean = true,
     val soundStyle: SoundStyle = SoundStyle.BOWL,
@@ -31,8 +34,19 @@ data class AppSettings(
     val naturalEasing: Boolean = true,
     val showCountdown: Boolean = true,
 
-    /** 0 means the session runs until stopped. */
-    val sessionMinutes: Int = 0,
+    val sessionLength: SessionLength = SessionLength.ENDLESS,
+    val sessionMinutes: Int = 10,
+    val sessionCycles: Int = 20,
     val keepScreenOn: Boolean = true,
     val theme: ThemeMode = ThemeMode.SYSTEM,
 )
+
+/** The end condition the runner checks at the end of every cycle; zero means no limit. */
+data class SessionLimit(val millis: Long = 0L, val cycles: Int = 0)
+
+val AppSettings.sessionLimit: SessionLimit
+    get() = when (sessionLength) {
+        SessionLength.ENDLESS -> SessionLimit()
+        SessionLength.MINUTES -> SessionLimit(millis = sessionMinutes * 60_000L)
+        SessionLength.CYCLES -> SessionLimit(cycles = sessionCycles)
+    }

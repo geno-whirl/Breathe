@@ -25,21 +25,30 @@
     <string name="resume">Resume</string>
     <string name="stop">Stop</string>
     <string name="custom_pattern">Custom</string>
-    <string name="status_running">%1$s · cycle %2$d · %3$s</string>
+    <string name="status_running">%1$s · %2$s · %3$s</string>
+    <string name="cycle_n">cycle %1$d</string>
+    <string name="cycle_n_of">cycle %1$d of %2$d</string>
+    <string name="elapsed_of">%1$s / %2$s</string>
     <string name="status_idle">%1$s · %2$s s cycle · %3$s / min</string>
 
     <!-- Pattern -->
-    <string name="pattern">Pattern</string>
     <string name="mode_seconds">Seconds</string>
     <string name="mode_cycle">Cycle</string>
     <string name="mode_per_minute">Per minute</string>
-    <string name="mode_seconds_hint">Each number is the length of its stage in seconds.</string>
     <string name="cycle_length">Cycle length</string>
     <string name="breaths_per_minute">Breaths per minute</string>
     <string name="seconds_short">%1$s s</string>
     <string name="minutes_short">%1$d min</string>
     <string name="session_length">Session length</string>
     <string name="endless">Endless</string>
+    <string name="endless_short">endless</string>
+    <string name="endless_hint">Breathe until you press stop.</string>
+    <string name="length_minutes">Minutes</string>
+    <string name="length_cycles">Cycles</string>
+    <string name="unit_minutes">min</string>
+    <string name="unit_cycles">cycles</string>
+    <string name="done">Done</string>
+    <string name="cycle_summary">%1$s s cycle · %2$s breaths per minute</string>
     <string name="increase">More %1$s</string>
     <string name="decrease">Less %1$s</string>
     <string name="save_preset">Save as preset</string>
@@ -95,9 +104,9 @@
     <!-- Notification and widget -->
     <string name="channel_name">Breathing session</string>
     <string name="channel_description">Shows the running session and its controls</string>
-    <string name="notification_detail">%1$s · cycle %2$d</string>
+    <string name="notification_detail">%1$s · %2$s</string>
     <string name="widget_description">Start, pause and follow a breathing session, switch presets and toggle sound or vibration.</string>
-    <string name="widget_running_detail">%1$s · cycle %2$d</string>
+    <string name="widget_running_detail">%1$s · %2$s</string>
     <string name="widget_idle_detail">%1$s s cycle · %2$s / min</string>
     <string name="previous_preset">Previous preset</string>
     <string name="next_preset">Next preset</string>
