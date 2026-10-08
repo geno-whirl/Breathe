@@ -47,6 +47,11 @@ class Store private constructor(private val context: Context) {
         BreathWidget.refresh(context)
     }
 
+    /** Whether the app has already explained why it asks for notifications. */
+    var notificationPromptShown: Boolean
+        get() = prefs.getBoolean(KEY_NOTIFICATION_PROMPT, false)
+        set(value) = prefs.edit().putBoolean(KEY_NOTIFICATION_PROMPT, value).apply()
+
     /** The preset whose rhythm matches the current pattern, if any. */
     fun matchingPreset(pattern: BreathPattern = _pattern.value): Preset? =
         _presets.value.firstOrNull { it.pattern.sameRhythmAs(pattern) }
@@ -200,6 +205,7 @@ class Store private constructor(private val context: Context) {
         private const val KEY_PATTERN = "pattern"
         private const val KEY_SETTINGS = "settings"
         private const val KEY_PRESETS = "presets"
+        private const val KEY_NOTIFICATION_PROMPT = "notificationPromptShown"
 
         @Volatile
         private var instance: Store? = null

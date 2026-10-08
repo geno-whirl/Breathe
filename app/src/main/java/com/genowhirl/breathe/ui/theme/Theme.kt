@@ -1,6 +1,7 @@
 package com.genowhirl.breathe.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
@@ -131,10 +132,11 @@ fun BreatheTheme(mode: ThemeMode, content: @Composable () -> Unit) {
         ThemeMode.DARK -> true
     }
     CompositionLocalProvider(LocalAmbience provides if (dark) NightAmbience else DayAmbience) {
-        MaterialTheme(
-            colorScheme = if (dark) NightScheme else DayScheme,
-            typography = AppTypography,
-            content = content,
-        )
+        val scheme = if (dark) NightScheme else DayScheme
+        MaterialTheme(colorScheme = scheme, typography = AppTypography) {
+            // Screens draw on a gradient rather than a Surface, so set the default text and icon
+            // colour here; otherwise anything without an explicit colour falls back to black.
+            CompositionLocalProvider(LocalContentColor provides scheme.onBackground, content = content)
+        }
     }
 }

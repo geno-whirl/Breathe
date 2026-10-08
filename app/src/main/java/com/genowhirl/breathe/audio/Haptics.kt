@@ -68,12 +68,16 @@ class Haptics(context: Context) {
         val s = 0.35f + 0.65f * strength.coerceIn(0f, 1f)
         val c = VibrationEffect.startComposition()
         when (cue) {
-            Cue.INHALE -> c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE, s)
-            Cue.EXHALE -> {
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s * 0.8f)
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, s, 40)
+            Cue.INHALE -> {
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE, s)
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, s * 0.7f)
             }
-            Cue.HOLD_IN, Cue.HOLD_OUT -> c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_LOW_TICK, s)
+            Cue.EXHALE -> {
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s)
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, s, 60)
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, s * 0.6f, 40)
+            }
+            Cue.HOLD_IN, Cue.HOLD_OUT -> c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s * 0.6f)
             Cue.TICK -> c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_LOW_TICK, s * 0.5f)
             Cue.FINISH -> {
                 c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s)

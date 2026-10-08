@@ -37,15 +37,15 @@ object HapticPatterns {
      */
     fun cue(cue: Cue, strength: Float, canVaryStrength: Boolean): Waveform {
         fun a(level: Float) = if (canVaryStrength) amplitude(level, strength) else 255
-        val k = if (canVaryStrength) 1.0 else 1.6
+        val k = if (canVaryStrength) 1.0 else 1.4
         fun ms(v: Int) = (v * k).toLong()
         return when (cue) {
-            Cue.INHALE -> Waveform(longArrayOf(0, ms(26), 120, ms(38)), intArrayOf(0, a(0.55f), 0, a(1f)))
-            Cue.EXHALE -> Waveform(longArrayOf(0, ms(38), 120, ms(26)), intArrayOf(0, a(1f), 0, a(0.5f)))
-            Cue.HOLD_IN, Cue.HOLD_OUT -> Waveform(longArrayOf(0, ms(24)), intArrayOf(0, a(0.65f)))
-            Cue.TICK -> Waveform(longArrayOf(0, ms(12)), intArrayOf(0, a(0.35f)))
+            Cue.INHALE -> Waveform(longArrayOf(0, ms(45), 120, ms(65)), intArrayOf(0, a(0.55f), 0, a(1f)))
+            Cue.EXHALE -> Waveform(longArrayOf(0, ms(65), 120, ms(45)), intArrayOf(0, a(1f), 0, a(0.5f)))
+            Cue.HOLD_IN, Cue.HOLD_OUT -> Waveform(longArrayOf(0, ms(40)), intArrayOf(0, a(0.65f)))
+            Cue.TICK -> Waveform(longArrayOf(0, ms(18)), intArrayOf(0, a(0.35f)))
             Cue.FINISH -> Waveform(
-                longArrayOf(0, ms(40), 170, ms(40), 170, ms(80)),
+                longArrayOf(0, ms(60), 170, ms(60), 170, ms(120)),
                 intArrayOf(0, a(1f), 0, a(1f), 0, a(0.8f)),
             )
         }
@@ -58,7 +58,7 @@ object HapticPatterns {
      */
     fun breathTrain(phase: Phase, durationMs: Long, strength: Float, canVaryStrength: Boolean): Waveform? {
         if (phase != Phase.INHALE && phase != Phase.EXHALE) return null
-        val pulse = if (canVaryStrength) 22L else 38L
+        val pulse = if (canVaryStrength) 35L else 55L
         val timings = ArrayList<Long>()
         val amps = ArrayList<Int>()
         var t = 0L

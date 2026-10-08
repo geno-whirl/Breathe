@@ -22,7 +22,7 @@ class HapticPatternsTest {
                 val w = HapticPatterns.cue(cue, 0.6f, vary)
                 assertEquals(w.timings.size, w.amplitudes.size)
                 // Every "on" segment is a tap, never a long buzz.
-                w.timings.forEachIndexed { i, t -> if (i % 2 == 1) assertTrue("$cue $t", t <= 130) }
+                w.timings.forEachIndexed { i, t -> if (i % 2 == 1) assertTrue("$cue $t", t <= 170) }
             }
         }
     }

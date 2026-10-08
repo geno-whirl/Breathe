@@ -25,9 +25,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import com.genowhirl.breathe.R
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -88,16 +96,45 @@ private fun BreatheApp(store: Store) {
         Session.start(context)
     }
 
+    var explainNotifications by remember { mutableStateOf(false) }
+
     fun toggle() {
         if (session.status == Status.FINISHED) Session.dismissFinished()
-        val needsPermission = !session.isActive &&
+        // Explain once, before the system prompt; after that, never nag.
+        val askFirst = !session.isActive &&
+            !store.notificationPromptShown &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-        if (needsPermission) {
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        if (askFirst) {
+            explainNotifications = true
         } else {
             Session.toggle(context)
         }
+    }
+
+    if (explainNotifications) {
+        AlertDialog(
+            onDismissRequest = {},
+            icon = { Icon(painterResource(R.drawable.ic_stat_breath), contentDescription = null) },
+            title = { Text(stringResource(R.string.notifications_title)) },
+            text = { Text(stringResource(R.string.notifications_text)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    explainNotifications = false
+                    store.notificationPromptShown = true
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }) { Text(stringResource(R.string.notifications_allow)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    explainNotifications = false
+                    store.notificationPromptShown = true
+                    Session.start(context)
+                }) { Text(stringResource(R.string.not_now)) }
+            },
+        )
     }
 
     BackHandler(enabled = showSettings) { showSettings = false }

@@ -30,6 +30,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.genowhirl.breathe.R
 import com.genowhirl.breathe.audio.Cue
 import com.genowhirl.breathe.audio.CuePlayer
@@ -52,6 +55,11 @@ fun SettingsScreen(
     val player = remember { CuePlayer(context) }
     val haptics = remember { Haptics(context) }
     DisposableEffect(Unit) { onDispose { player.release() } }
+    // Re-check when returning from the system settings screen.
+    val lifecycleState by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val notificationsEnabled = remember(lifecycleState) {
+        NotificationManagerCompat.from(context).areNotificationsEnabled()
+    }
 
     fun previewSound(s: AppSettings = settings) {
         if (s.soundEnabled) player.play(s.soundStyle, Cue.INHALE, s.soundVolume)
@@ -238,8 +246,24 @@ fun SettingsScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (!notificationsEnabled) {
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    stringResource(R.string.notifications_off),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
             Spacer(Modifier.height(12.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (!notificationsEnabled) {
+                    OutlinedButton(onClick = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }) { Text(stringResource(R.string.notifications_allow)) }
+                }
                 OutlinedButton(onClick = {
                     context.startActivity(
                         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
