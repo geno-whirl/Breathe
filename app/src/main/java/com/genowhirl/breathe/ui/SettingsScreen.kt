@@ -274,6 +274,28 @@ fun SettingsScreen(
             Spacer(Modifier.height(4.dp))
             TextButton(onClick = onRestorePresets) { Text(stringResource(R.string.restore_presets)) }
         }
+        Spacer(gap)
+
+        SectionCard(stringResource(R.string.about)) {
+            val version = remember {
+                runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull().orEmpty()
+            }
+            Text(stringResource(R.string.about_version, version), style = MaterialTheme.typography.bodyLarge)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(R.string.about_license),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+            TextButton(onClick = {
+                context.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(SOURCE_URL)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }) { Text(stringResource(R.string.about_source)) }
+        }
         Spacer(Modifier.height(32.dp))
     }
 }
+
+private const val SOURCE_URL = "https://github.com/geno-whirl/Breathe"

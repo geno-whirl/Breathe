@@ -31,8 +31,14 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("debug")
+            // Left unsigned: F-Droid and other stores sign release builds with their own key.
         }
+    }
+
+    // F-Droid rejects the dependency metadata block that Google encrypts into APKs by default.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     compileOptions {

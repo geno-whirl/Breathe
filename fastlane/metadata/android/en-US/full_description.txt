@@ -1,0 +1,32 @@
+<p>A calm breathing companion built around four stages: <b>inhale, hold, exhale, hold</b>. It keeps guiding you with sound and vibration while the phone is locked, and its home-screen widget does everything the app does.</p>
+
+<p><b>Your pattern, your way</b></p>
+<ul>
+<li>Set each stage as a whole number; use 0 to skip a stage.</li>
+<li>Time it in seconds per stage, by total cycle length, or by breaths per minute.</li>
+<li>Presets for box breathing, 4-7-8, coherent breathing (5.5 per minute) and more, plus your own.</li>
+<li>Sessions can be endless, a number of minutes, or a number of cycles.</li>
+</ul>
+
+<p><b>Guided by sound</b></p>
+<ul>
+<li>Singing bowl, chime, soft tone, marimba or spoken cues, all synthesised on the device.</li>
+<li>Every cue is tuned to the same scale, so they sound good together.</li>
+<li>Volume, optional hold cues and an optional soft tick each second.</li>
+</ul>
+
+<p><b>Guided by touch</b></p>
+<ul>
+<li>Pulses: a rising double tap to breathe in, a falling one to breathe out.</li>
+<li>Wave: soft taps that strengthen through the inhale and fade through the exhale, so you can follow with your eyes closed.</li>
+<li>Uses your phone's built-in haptic effects when available.</li>
+</ul>
+
+<p><b>Works with the screen off</b></p>
+<p>Sessions keep running when the phone is locked. The notification shows the current stage and a countdown, with Pause and Stop buttons on the lock screen.</p>
+
+<p><b>A widget that does everything</b></p>
+<p>Start, pause and stop, follow the current stage on a progress bar, switch presets and toggle sound or vibration, all from the home screen.</p>
+
+<p><b>Beautiful and private</b></p>
+<p>A glowing orb, a box or a ring animation in light and dark themes. No ads, no tracking, no account and no internet permission.</p>

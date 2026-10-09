@@ -100,6 +100,10 @@
     <string name="locked_phone_text">Sessions keep running with the screen off or locked, guided by sound and vibration. Pause or stop them from the notification. If a session stops on its own, set the app\'s battery usage to Unrestricted.</string>
     <string name="open_app_settings">App settings</string>
     <string name="restore_presets">Restore built-in presets</string>
+    <string name="about">About</string>
+    <string name="about_version">Breathe %1$s</string>
+    <string name="about_license">Free software: you can redistribute and modify it under the GNU General Public License, version 3 or later. It comes with no warranty.</string>
+    <string name="about_source">Source code</string>
 
     <string name="notifications_title">Allow notifications?</string>
     <string name="notifications_text">While a session runs, Breathe shows a small notification with the current stage, a countdown, and Pause and Stop buttons. You can use them from the lock screen without unlocking your phone.\n\nWithout notifications the session still runs and guides you with sound and vibration, but you can only pause or stop it from the app or the widget.</string>
