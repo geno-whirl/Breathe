@@ -110,6 +110,32 @@ class BreathRunnerTest {
     }
 
     @Test
+    fun plannedSessionMatchesWhatTheRunnerDoes() {
+        val pattern = BreathPattern(4, 4, 4, 4) // 16 s cycles
+        val timed = AppSettings(sessionLength = SessionLength.MINUTES, sessionMinutes = 10)
+        assertEquals(38, timed.plannedCycles(pattern.cycleMillis))
+        assertEquals(608_000L, timed.plannedMillis(pattern.cycleMillis))
+
+        val runner = BreathRunner({ pattern }, { timed.sessionLimit })
+        runner.start(0)
+        assertTrue(runner.update(607_999).none { it is RunnerEvent.Finished })
+        assertEquals(RunnerEvent.Finished, runner.update(608_000).last())
+
+        val exact = AppSettings(sessionLength = SessionLength.MINUTES, sessionMinutes = 5)
+        assertEquals(20, exact.plannedCycles(15_000))
+
+        val counted = AppSettings(sessionLength = SessionLength.CYCLES, sessionCycles = 20)
+        assertEquals(320_000L, counted.plannedMillis(pattern.cycleMillis))
+        assertEquals(null, AppSettings().plannedCycles(pattern.cycleMillis))
+    }
+
+    @Test
+    fun oneFourTwoPresetUsesTheClassicRatio() {
+        val p = BuiltInPresets.all.single { it.name == "1-4-2" }.pattern
+        assertEquals(listOf(3000L, 12_000L, 6000L, 0L), p.phaseMillis().toList())
+    }
+
+    @Test
     fun patternChangesApplyFromTheNextPhase() {
         var pattern = BreathPattern(4, 0, 4, 0)
         val runner = BreathRunner({ pattern })

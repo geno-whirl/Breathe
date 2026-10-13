@@ -111,6 +111,12 @@ object BuiltInPresets {
     val all = listOf(
         Preset("box", "Box", BreathPattern(4, 4, 4, 4), builtIn = true),
         Preset("478", "4-7-8", BreathPattern(4, 7, 8, 0), builtIn = true),
+        // The classic 1:4:2 ratio (in, hold, out); 21 s per cycle gives 3-12-6 seconds.
+        Preset(
+            "142", "1-4-2",
+            BreathPattern(1, 4, 2, 0, mode = TimingMode.CYCLE_LENGTH, cycleSeconds = 21.0),
+            builtIn = true,
+        ),
         Preset(
             "coherent", "Coherent",
             BreathPattern(1, 0, 1, 0, mode = TimingMode.PER_MINUTE, cyclesPerMinute = 5.5),

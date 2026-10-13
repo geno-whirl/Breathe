@@ -30,6 +30,14 @@
     <string name="cycle_n_of">cycle %1$d of %2$d</string>
     <string name="elapsed_of">%1$s / %2$s</string>
     <string name="status_idle">%1$s · %2$s s cycle · %3$s / min</string>
+    <string name="status_idle_planned">%1$s · %2$s s cycle · %3$s</string>
+    <string name="planned_total">%1$s total</string>
+    <string name="planned_total_detail">Total time: %1$s</string>
+    <string name="planned_cycles_detail">That is %1$s, finishing at %2$s (the last cycle is always completed).</string>
+    <plurals name="cycles_count">
+        <item quantity="one">%d cycle</item>
+        <item quantity="other">%d cycles</item>
+    </plurals>
 
     <!-- Pattern -->
     <string name="mode_seconds">Seconds</string>

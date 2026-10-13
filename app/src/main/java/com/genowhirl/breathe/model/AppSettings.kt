@@ -50,3 +50,21 @@ val AppSettings.sessionLimit: SessionLimit
         SessionLength.MINUTES -> SessionLimit(millis = sessionMinutes * 60_000L)
         SessionLength.CYCLES -> SessionLimit(cycles = sessionCycles)
     }
+
+/**
+ * How many cycles the session will run with cycles of [cycleMillis], or null when endless. A
+ * timed session always finishes its last cycle, so it runs the first whole number of cycles
+ * that reaches the time.
+ */
+fun AppSettings.plannedCycles(cycleMillis: Long): Int? = when (sessionLength) {
+    SessionLength.ENDLESS -> null
+    SessionLength.CYCLES -> sessionCycles
+    SessionLength.MINUTES -> {
+        val limit = sessionMinutes * 60_000L
+        val cycle = cycleMillis.coerceAtLeast(1L)
+        ((limit + cycle - 1) / cycle).toInt().coerceAtLeast(1)
+    }
+}
+
+/** Total breathing time of the session, or null when endless. */
+fun AppSettings.plannedMillis(cycleMillis: Long): Long? = plannedCycles(cycleMillis)?.let { it * cycleMillis }

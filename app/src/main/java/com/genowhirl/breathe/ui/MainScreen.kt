@@ -97,7 +97,7 @@ fun MainScreen(
 
         StatusLine(session, pattern, presets, settings)
         Spacer(Modifier.height(10.dp))
-        Controls(session, settings, onToggle, onStop, onSettings)
+        Controls(session, settings, pattern.cycleMillis, onToggle, onStop, onSettings)
         Spacer(Modifier.height(14.dp))
 
         PatternPanel(
@@ -169,12 +169,19 @@ private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: L
         }
         stringResource(R.string.status_running, name, cycleLabel(context.resources, session.cycle, settings), time)
     } else {
-        stringResource(
-            R.string.status_idle,
-            name,
-            formatSeconds(pattern.cycleMillis / 1000.0),
-            formatSeconds(pattern.breathsPerMinute),
-        )
+        // With a session length set, show what it amounts to: the total time for a number of
+        // cycles, or the number of cycles for a number of minutes.
+        val planned = plannedSessionText(context.resources, settings, pattern.cycleMillis, detailed = false)
+        if (planned != null) {
+            stringResource(R.string.status_idle_planned, name, formatSeconds(pattern.cycleMillis / 1000.0), planned)
+        } else {
+            stringResource(
+                R.string.status_idle,
+                name,
+                formatSeconds(pattern.cycleMillis / 1000.0),
+                formatSeconds(pattern.breathsPerMinute),
+            )
+        }
     }
     Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
 }
@@ -183,6 +190,7 @@ private fun StatusLine(session: SessionState, pattern: BreathPattern, presets: L
 private fun Controls(
     session: SessionState,
     settings: AppSettings,
+    cycleMillis: Long,
     onToggle: () -> Unit,
     onStop: () -> Unit,
     onSettings: ((AppSettings) -> AppSettings) -> Unit,
@@ -228,7 +236,7 @@ private fun Controls(
         SessionLengthButton(settings, Modifier.width(72.dp)) { editingLength = true }
     }
     if (editingLength) {
-        SessionLengthDialog(settings, onSettings) { editingLength = false }
+        SessionLengthDialog(settings, cycleMillis, onSettings) { editingLength = false }
     }
 }
 
@@ -256,6 +264,7 @@ private fun SessionLengthButton(settings: AppSettings, modifier: Modifier, onCli
 @Composable
 private fun SessionLengthDialog(
     settings: AppSettings,
+    cycleMillis: Long,
     onSettings: ((AppSettings) -> AppSettings) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -305,6 +314,15 @@ private fun SessionLengthDialog(
                         max = 999.0,
                         decimals = false,
                         onChange = { v -> onSettings { it.copy(sessionCycles = v.toInt()) } },
+                    )
+                }
+                val planned = plannedSessionText(LocalContext.current.resources, settings, cycleMillis, detailed = true)
+                if (planned != null) {
+                    Text(
+                        planned,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, start = 4.dp, end = 4.dp),
                     )
                 }
             }

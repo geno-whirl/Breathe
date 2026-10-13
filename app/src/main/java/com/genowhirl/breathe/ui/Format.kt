@@ -4,6 +4,8 @@ import android.content.res.Resources
 import com.genowhirl.breathe.R
 import com.genowhirl.breathe.model.AppSettings
 import com.genowhirl.breathe.model.SessionLength
+import com.genowhirl.breathe.model.plannedCycles
+import com.genowhirl.breathe.model.plannedMillis
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -27,3 +29,20 @@ fun cycleLabel(res: Resources, cycle: Int, settings: AppSettings): String =
     } else {
         res.getString(R.string.cycle_n, cycle)
     }
+
+/**
+ * What a session length amounts to with the current pattern: the total time for a number of
+ * cycles, or the number of cycles for a number of minutes. Null when the session is endless.
+ */
+fun plannedSessionText(res: Resources, settings: AppSettings, cycleMillis: Long, detailed: Boolean): String? {
+    val cycles = settings.plannedCycles(cycleMillis) ?: return null
+    val total = formatClock(settings.plannedMillis(cycleMillis) ?: return null)
+    val cyclesText = res.getQuantityString(R.plurals.cycles_count, cycles, cycles)
+    return when (settings.sessionLength) {
+        SessionLength.CYCLES ->
+            res.getString(if (detailed) R.string.planned_total_detail else R.string.planned_total, total)
+        SessionLength.MINUTES ->
+            if (detailed) res.getString(R.string.planned_cycles_detail, cyclesText, total) else cyclesText
+        SessionLength.ENDLESS -> null
+    }
+}

@@ -10,8 +10,8 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
   - **Seconds**: each number is the stage's length in seconds.
   - **Cycle**: the numbers are relative weights and you set the total cycle length.
   - **Per minute**: the numbers are relative weights and you set breaths per minute, which sets the cycle length.
-- Built-in presets (Box, 4-7-8, Coherent 5.5/min, Calm 4-6, Triangle, Deep box). You can save your own and long-press a preset to delete it.
-- Session length: endless, a number of minutes, or a number of cycles.
+- Built-in presets (Box, 4-7-8, 1-4-2, Coherent 5.5/min, Calm 4-6, Triangle, Deep box). You can save your own and long-press a preset to delete it.
+- Session length: endless, a number of minutes, or a number of cycles. A number of cycles shows the total time; a number of minutes shows how many cycles that is.
 - Edits made during a session take effect from the next stage.
 
 **Sound**: Bowl, Chime, Soft, Wood (marimba) or spoken Voice cues. The tones are synthesised on the device like the real instruments (struck, decaying partials with a soft mallet and a small stereo room), in A major pentatonic so every cue sounds good with the others, with a volume setting, an option to cue the holds, and an optional faint tick every second.

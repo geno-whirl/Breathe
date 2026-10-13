@@ -86,6 +86,11 @@ class Store private constructor(private val context: Context) {
 
     private fun setPresets(list: List<Preset>) {
         _presets.value = list
+        writePresets(list)
+        BreathWidget.refresh(context)
+    }
+
+    private fun writePresets(list: List<Preset>) {
         val array = JSONArray()
         list.forEach { p ->
             array.put(
@@ -97,7 +102,6 @@ class Store private constructor(private val context: Context) {
             )
         }
         prefs.edit().putString(KEY_PRESETS, array.toString()).apply()
-        BreathWidget.refresh(context)
     }
 
     private fun readPattern(): BreathPattern =
@@ -105,7 +109,22 @@ class Store private constructor(private val context: Context) {
             ?: BuiltInPresets.all.first().pattern
 
     private fun readPresets(): List<Preset> {
-        val raw = prefs.getString(KEY_PRESETS, null) ?: return BuiltInPresets.all
+        val stored = readStoredPresets()
+        // Built-ins added in later versions appear once; ones the user deleted stay deleted.
+        val known = prefs.getStringSet(KEY_KNOWN_BUILT_INS, null)
+            ?: if (prefs.contains(KEY_PRESETS)) LEGACY_BUILT_INS else emptySet()
+        val ids = stored.map { it.id }.toSet()
+        val added = BuiltInPresets.all.filter { it.id !in known && it.id !in ids }
+        prefs.edit().putStringSet(KEY_KNOWN_BUILT_INS, BuiltInPresets.all.map { it.id }.toSet() + known).apply()
+        if (added.isEmpty()) return stored
+        val lastBuiltIn = stored.indexOfLast { it.builtIn }
+        val merged = stored.toMutableList().apply { addAll(lastBuiltIn + 1, added) }
+        writePresets(merged)
+        return merged
+    }
+
+    private fun readStoredPresets(): List<Preset> {
+        val raw = prefs.getString(KEY_PRESETS, null) ?: return emptyList()
         return runCatching {
             val array = JSONArray(raw)
             (0 until array.length()).map { i ->
@@ -205,6 +224,10 @@ class Store private constructor(private val context: Context) {
         private const val KEY_PATTERN = "pattern"
         private const val KEY_SETTINGS = "settings"
         private const val KEY_PRESETS = "presets"
+        private const val KEY_KNOWN_BUILT_INS = "knownBuiltIns"
+
+        /** The built-ins of the first release, which stored no record of them. */
+        private val LEGACY_BUILT_INS = setOf("box", "478", "coherent", "calm", "triangle", "deep")
         private const val KEY_NOTIFICATION_PROMPT = "notificationPromptShown"
 
         @Volatile
