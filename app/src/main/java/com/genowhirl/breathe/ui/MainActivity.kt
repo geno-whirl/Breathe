@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.genowhirl.breathe.data.SessionLog
 import com.genowhirl.breathe.data.Store
 import com.genowhirl.breathe.engine.Session
 import com.genowhirl.breathe.engine.Status
@@ -82,7 +83,10 @@ private fun BreatheApp(store: Store) {
     val pattern by store.pattern.collectAsStateWithLifecycle()
     val presets by store.presets.collectAsStateWithLifecycle()
     val settings by store.settings.collectAsStateWithLifecycle()
-    var showSettings by rememberSaveable { mutableStateOf(false) }
+    val lastPresetId by store.lastPresetId.collectAsStateWithLifecycle()
+    val log = remember { SessionLog.get(context) }
+    val history by log.records.collectAsStateWithLifecycle()
+    var screen by rememberSaveable { mutableStateOf(Screen.MAIN) }
 
     val view = LocalView.current
     val keepOn = settings.keepScreenOn && session.status == Status.RUNNING
@@ -137,7 +141,17 @@ private fun BreatheApp(store: Store) {
         )
     }
 
-    BackHandler(enabled = showSettings) { showSettings = false }
+    BackHandler(enabled = screen != Screen.MAIN) { screen = Screen.MAIN }
+
+    val presetActions = remember(store) {
+        PresetActions(
+            apply = store::applyPreset,
+            saveNew = { store.savePreset(it) },
+            update = { store.updatePreset(it.id) },
+            rename = { preset, name -> store.updatePreset(preset.id, name = name, pattern = null) },
+            delete = { store.deletePreset(it.id) },
+        )
+    }
 
     val ambience = LocalAmbience.current
     Box(
@@ -146,20 +160,25 @@ private fun BreatheApp(store: Store) {
             .background(Brush.verticalGradient(listOf(ambience.top, ambience.bottom))),
     ) {
         AnimatedContent(
-            targetState = showSettings,
+            targetState = screen,
             transitionSpec = { fadeIn() togetherWith fadeOut() },
             modifier = Modifier.fillMaxSize().safeDrawingPadding(),
             label = "screen",
-        ) { settingsVisible ->
-            if (settingsVisible) {
-                SettingsScreen(
+        ) { current ->
+            when (current) {
+                Screen.SETTINGS -> SettingsScreen(
                     settings = settings,
                     onSettings = store::updateSettings,
                     onRestorePresets = store::restoreBuiltInPresets,
-                    onBack = { showSettings = false },
+                    onBack = { screen = Screen.MAIN },
                 )
-            } else {
-                MainScreen(
+                Screen.HISTORY -> HistoryScreen(
+                    records = history,
+                    onDelete = log::delete,
+                    onClear = log::clear,
+                    onBack = { screen = Screen.MAIN },
+                )
+                Screen.MAIN -> MainScreen(
                     session = session,
                     pattern = pattern,
                     presets = presets,
@@ -168,12 +187,14 @@ private fun BreatheApp(store: Store) {
                     onStop = { Session.stop(context) },
                     onPattern = store::updatePattern,
                     onSettings = store::updateSettings,
-                    onApplyPreset = store::applyPreset,
-                    onSavePreset = { store.savePreset(it) },
-                    onDeletePreset = { store.deletePreset(it.id) },
-                    onOpenSettings = { showSettings = true },
+                    lastPresetId = lastPresetId,
+                    presetActions = presetActions,
+                    onOpenSettings = { screen = Screen.SETTINGS },
+                    onOpenHistory = { screen = Screen.HISTORY },
                 )
             }
         }
     }
 }
+
+private enum class Screen { MAIN, SETTINGS, HISTORY }

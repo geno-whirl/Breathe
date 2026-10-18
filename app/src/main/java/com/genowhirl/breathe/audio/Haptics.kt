@@ -96,18 +96,24 @@ class Haptics(context: Context) {
             VibrationEffect.createWaveform(w.timings, -1)
         }
 
+    /**
+     * Vibrations are tagged as alarm-class. Android silently drops most other classes (media,
+     * touch, notification) when Battery Saver is on or when it briefly treats the app as being in
+     * the background, which made cues vanish after the phone had been locked for a while.
+     * Alarm-class vibrations are exempt from both, and follow the phone's alarm vibration setting.
+     */
     private fun vibrate(effect: VibrationEffect) {
         val v = vibrator ?: return
         if (!v.hasVibrator()) return
         runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                v.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_MEDIA))
+                v.vibrate(effect, VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM))
             } else {
                 @Suppress("DEPRECATION")
                 v.vibrate(
                     effect,
                     AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setUsage(AudioAttributes.USAGE_ALARM)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build(),
                 )

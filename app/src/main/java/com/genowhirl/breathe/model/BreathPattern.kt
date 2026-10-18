@@ -14,6 +14,12 @@ enum class TimingMode {
     /** Each integer is the stage's length in seconds. */
     SECONDS,
 
+    /**
+     * Each integer is a number of counts lasting [BreathPattern.countSeconds] each; the countdown
+     * shows counts instead of seconds.
+     */
+    COUNT,
+
     /** The integers are relative weights; the whole cycle lasts [BreathPattern.cycleSeconds]. */
     CYCLE_LENGTH,
 
@@ -29,6 +35,7 @@ data class BreathPattern(
     val mode: TimingMode = TimingMode.SECONDS,
     val cycleSeconds: Double = 16.0,
     val cyclesPerMinute: Double = 6.0,
+    val countSeconds: Double = 1.0,
 ) {
     fun units(phase: Phase): Int = when (phase) {
         Phase.INHALE -> inhale
@@ -54,9 +61,23 @@ data class BreathPattern(
     val cycleMillis: Long
         get() = when (mode) {
             TimingMode.SECONDS -> unitSum * 1000L
+            TimingMode.COUNT -> unitSum * countMillis
             TimingMode.CYCLE_LENGTH -> (cycleSeconds.coerceIn(MIN_CYCLE_SECONDS, MAX_CYCLE_SECONDS) * 1000).roundToLong()
             TimingMode.PER_MINUTE -> (60_000.0 / cyclesPerMinute.coerceIn(MIN_PER_MINUTE, MAX_PER_MINUTE)).roundToLong()
         }
+
+    /** Length of one count in [TimingMode.COUNT]. */
+    val countMillis: Long
+        get() = (countSeconds.coerceIn(MIN_COUNT_SECONDS, MAX_COUNT_SECONDS) * 1000).roundToLong()
+
+    /** What the on-screen countdown counts: counts in [TimingMode.COUNT], seconds otherwise. */
+    val countdownStepMillis: Long get() = if (mode == TimingMode.COUNT) countMillis else 1000L
+
+    /** The number shown for a stage with [remainingMs] left: 4, 3, 2, 1. */
+    fun countdown(remainingMs: Long): Int {
+        val step = countdownStepMillis
+        return ((remainingMs.coerceAtLeast(0) + step - 1) / step).toInt()
+    }
 
     val breathsPerMinute: Double get() = if (cycleMillis == 0L) 0.0 else 60_000.0 / cycleMillis
 
@@ -95,6 +116,8 @@ data class BreathPattern(
         const val MAX_UNITS = 99
         const val MIN_CYCLE_SECONDS = 1.0
         const val MAX_CYCLE_SECONDS = 600.0
+        const val MIN_COUNT_SECONDS = 0.2
+        const val MAX_COUNT_SECONDS = 10.0
         const val MIN_PER_MINUTE = 0.5
         const val MAX_PER_MINUTE = 60.0
     }

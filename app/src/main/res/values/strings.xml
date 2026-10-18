@@ -42,7 +42,9 @@
     <!-- Pattern -->
     <string name="mode_seconds">Seconds</string>
     <string name="mode_cycle">Cycle</string>
-    <string name="mode_per_minute">Per minute</string>
+    <string name="mode_per_minute">Per min</string>
+    <string name="mode_count">Count</string>
+    <string name="count_length">Length of one count</string>
     <string name="cycle_length">Cycle length</string>
     <string name="breaths_per_minute">Breaths per minute</string>
     <string name="seconds_short">%1$s s</string>
@@ -60,6 +62,14 @@
     <string name="increase">More %1$s</string>
     <string name="decrease">Less %1$s</string>
     <string name="save_preset">Save as preset</string>
+    <string name="preset_modified">%1$s •</string>
+    <string name="save_changes_title">Save changes</string>
+    <string name="save_changes_text">Update “%1$s” with the current pattern, or keep it and save a new preset?</string>
+    <string name="update_preset">Update “%1$s”</string>
+    <string name="save_as_new">Save as new</string>
+    <string name="update_with_current">Update with current pattern</string>
+    <string name="rename">Rename</string>
+    <string name="built_in_preset_hint">Built-in presets can\'t be changed; adjust the pattern and save it as your own. Deleted built-ins can be restored in Settings.</string>
     <string name="preset_name_hint">Name</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
@@ -81,7 +91,7 @@
     <string name="volume">Volume</string>
     <string name="cue_on_holds">Cue holds too</string>
     <string name="tick_seconds">Tick every second</string>
-    <string name="tick_seconds_hint">A faint click to help you count</string>
+    <string name="tick_seconds_hint">A faint click to help you count (on every count in Count mode)</string>
     <string name="vibration">Vibration</string>
     <string name="vibration_cues">Vibration cues</string>
     <string name="vibration_pulses">Pulses</string>
@@ -118,6 +128,23 @@
     <string name="notifications_allow">Allow notifications</string>
     <string name="not_now">Not now</string>
     <string name="notifications_off">Notifications are off, so there are no lock-screen controls. Sessions still run.</string>
+
+    <string name="history">History</string>
+    <string name="history_export">Download as CSV</string>
+    <string name="history_exported">Sessions saved</string>
+    <string name="history_export_failed">Couldn\'t save the file</string>
+    <string name="history_empty">No sessions yet.\nSessions of 10 seconds or more are recorded here.</string>
+    <string name="history_last_7_days">Last 7 days</string>
+    <string name="history_all_time">All time</string>
+    <string name="history_stopped">stopped</string>
+    <string name="history_clear">Clear history</string>
+    <string name="history_clear_title">Clear history?</string>
+    <string name="history_clear_text">All recorded sessions are deleted from this phone. Download them first if you want to keep a copy.</string>
+    <string name="history_delete_title">Delete this session?</string>
+    <plurals name="sessions_count">
+        <item quantity="one">%d session</item>
+        <item quantity="other">%d sessions</item>
+    </plurals>
 
     <!-- Notification and widget -->
     <string name="channel_name">Breathing session</string>

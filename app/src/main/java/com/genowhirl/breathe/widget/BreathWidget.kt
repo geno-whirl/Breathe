@@ -26,7 +26,6 @@ import com.genowhirl.breathe.ui.MainActivity
 import com.genowhirl.breathe.ui.cycleLabel
 import com.genowhirl.breathe.ui.formatSeconds
 import com.genowhirl.breathe.ui.theme.PhaseColors
-import kotlin.math.ceil
 import kotlin.math.roundToInt
 
 /** Home-screen widget: shows the current stage and controls the session and its settings. */
@@ -116,7 +115,7 @@ object BreathWidget {
         views.setTextColor(R.id.phase, if (active) phaseColor else 0xFFE6E9F2.toInt())
 
         val countdown = if (active) {
-            ceil(state.phaseRemaining(now) / 1000.0).toInt().coerceAtLeast(0).toString()
+            pattern.countdown(state.phaseRemaining(now)).toString()
         } else {
             "${pattern.inhale}·${pattern.holdIn}·${pattern.exhale}·${pattern.holdOut}"
         }

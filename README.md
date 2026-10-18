@@ -6,11 +6,12 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 
 **Pattern**
 - Four integer stages: inhale, hold, exhale, hold (a stage can be 0 to skip it).
-- Three timing modes:
+- Four timing modes:
   - **Seconds**: each number is the stage's length in seconds.
+  - **Count**: each number is a count of a length you set (e.g. 0.8 s); the countdown and the optional tick follow the counts.
   - **Cycle**: the numbers are relative weights and you set the total cycle length.
   - **Per minute**: the numbers are relative weights and you set breaths per minute, which sets the cycle length.
-- Built-in presets (Box, 4-7-8, 1-4-2, Coherent 5.5/min, Calm 4-6, Triangle, Deep box). You can save your own and long-press a preset to delete it.
+- Built-in presets (Box, 4-7-8, 1-4-2, Coherent 5.5/min, Calm 4-6, Triangle, Deep box). You can save your own; after changing a pattern, the save button offers to update the preset you started from. Long-press a preset to update, rename or delete it.
 - Session length: endless, a number of minutes, or a number of cycles. A number of cycles shows the total time; a number of minutes shows how many cycles that is.
 - Edits made during a session take effect from the next stage.
 
@@ -20,6 +21,8 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 - **Pulses**: a rising double tap to breathe in, a falling one to breathe out, a soft tap for holds. Uses the phone's factory-tuned haptic effects when available.
 - **Wave**: soft taps that grow stronger and closer together through the inhale, then fade and slow through the exhale, so you can follow with your eyes closed.
 - Adjustable strength.
+
+**History**: every session of 10 seconds or more is recorded with its date, preset, pattern, breathing time, cycles and whether it ran to the end. The History screen shows totals for the last 7 days and all time, and downloads everything as a CSV file.
 
 **Animation**
 - **Orb**: grows and shrinks with the breath, inside a ring showing the four stages.
@@ -61,6 +64,7 @@ Requires JDK 17 and the Android SDK (API 36).
 | `widget/BreathWidget.kt` | Home-screen widget rendering and its buttons |
 | `ui/` | Compose screens, breathing visual, theme |
 | `data/Store.kt` | Saved pattern, presets and settings |
+| `data/SessionLog.kt`, `model/SessionRecord.kt` | Session history and its CSV export |
 
 ## License
 

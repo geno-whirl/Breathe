@@ -72,10 +72,10 @@ fun MainScreen(
     onStop: () -> Unit,
     onPattern: ((BreathPattern) -> BreathPattern) -> Unit,
     onSettings: ((AppSettings) -> AppSettings) -> Unit,
-    onApplyPreset: (Preset) -> Unit,
-    onSavePreset: (String) -> Unit,
-    onDeletePreset: (Preset) -> Unit,
+    lastPresetId: String?,
+    presetActions: PresetActions,
     onOpenSettings: () -> Unit,
+    onOpenHistory: () -> Unit,
 ) {
     Column(
         Modifier
@@ -83,7 +83,7 @@ fun MainScreen(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        TopBar(settings, onSettings, onOpenSettings)
+        TopBar(settings, onSettings, onOpenSettings, onOpenHistory)
 
         BreathVisual(
             state = session,
@@ -103,10 +103,9 @@ fun MainScreen(
         PatternPanel(
             pattern = pattern,
             presets = presets,
+            lastPresetId = lastPresetId,
             onPattern = onPattern,
-            onApplyPreset = onApplyPreset,
-            onSavePreset = onSavePreset,
-            onDeletePreset = onDeletePreset,
+            presetActions = presetActions,
         )
         Spacer(Modifier.height(10.dp))
     }
@@ -117,6 +116,7 @@ private fun TopBar(
     settings: AppSettings,
     onSettings: ((AppSettings) -> AppSettings) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenHistory: () -> Unit,
 ) {
     Row(
         Modifier.fillMaxWidth().padding(start = 8.dp),
@@ -140,6 +140,9 @@ private fun TopBar(
                 contentDescription = stringResource(R.string.vibration),
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = if (settings.vibrationEnabled) 0.9f else 0.45f),
             )
+        }
+        IconButton(onClick = onOpenHistory) {
+            Icon(painterResource(R.drawable.ic_history), contentDescription = stringResource(R.string.history))
         }
         IconButton(onClick = onOpenSettings) {
             Icon(painterResource(R.drawable.ic_tune), contentDescription = stringResource(R.string.settings))
@@ -335,40 +338,17 @@ private fun SessionLengthDialog(
 private fun PatternPanel(
     pattern: BreathPattern,
     presets: List<Preset>,
+    lastPresetId: String?,
     onPattern: ((BreathPattern) -> BreathPattern) -> Unit,
-    onApplyPreset: (Preset) -> Unit,
-    onSavePreset: (String) -> Unit,
-    onDeletePreset: (Preset) -> Unit,
+    presetActions: PresetActions,
 ) {
-    var saving by remember { mutableStateOf(false) }
-    var deleting by remember { mutableStateOf<Preset?>(null) }
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
     ) {
         Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                presets.forEach { preset ->
-                    PillButton(
-                        text = preset.name,
-                        selected = preset.pattern.sameRhythmAs(pattern),
-                        accent = MaterialTheme.colorScheme.primary,
-                        onClick = { onApplyPreset(preset) },
-                        onLongClick = { deleting = preset },
-                    )
-                }
-                IconButton(onClick = { saving = true }, modifier = Modifier.size(40.dp)) {
-                    Icon(painterResource(R.drawable.ic_bookmark_add), contentDescription = stringResource(R.string.save_preset))
-                }
-            }
+            PresetRow(pattern, presets, lastPresetId, presetActions)
 
             Spacer(Modifier.height(10.dp))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -385,6 +365,7 @@ private fun PatternPanel(
                     stringResource(
                         when (it) {
                             TimingMode.SECONDS -> R.string.mode_seconds
+                            TimingMode.COUNT -> R.string.mode_count
                             TimingMode.CYCLE_LENGTH -> R.string.mode_cycle
                             TimingMode.PER_MINUTE -> R.string.mode_per_minute
                         },
@@ -401,7 +382,13 @@ private fun PatternPanel(
                             } else {
                                 p.cycleSeconds
                             },
-                            cyclesPerMinute = if (mode == TimingMode.PER_MINUTE) {
+                            countSeconds = if (mode == TimingMode.COUNT) {
+                            roundTenth(seconds / p.unitSum.coerceAtLeast(1))
+                                .coerceIn(BreathPattern.MIN_COUNT_SECONDS, BreathPattern.MAX_COUNT_SECONDS)
+                        } else {
+                            p.countSeconds
+                        },
+                        cyclesPerMinute = if (mode == TimingMode.PER_MINUTE) {
                                 roundHalf(60.0 / seconds).coerceIn(BreathPattern.MIN_PER_MINUTE, BreathPattern.MAX_PER_MINUTE)
                             } else {
                                 p.cyclesPerMinute
@@ -427,6 +414,16 @@ private fun PatternPanel(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+                TimingMode.COUNT -> ValueStepper(
+                    title = stringResource(R.string.count_length),
+                    value = pattern.countSeconds,
+                    display = stringResource(R.string.seconds_short, formatSeconds(pattern.countSeconds)),
+                    step = 0.1,
+                    min = BreathPattern.MIN_COUNT_SECONDS,
+                    max = BreathPattern.MAX_COUNT_SECONDS,
+                    decimals = true,
+                    onChange = { v -> onPattern { it.copy(countSeconds = roundTenth(v)) } },
+                )
                 TimingMode.CYCLE_LENGTH -> ValueStepper(
                     title = stringResource(R.string.cycle_length),
                     value = pattern.cycleSeconds,
@@ -449,38 +446,6 @@ private fun PatternPanel(
                 )
             }
         }
-    }
-
-    if (saving) {
-        var name by remember { mutableStateOf("") }
-        AlertDialog(
-            onDismissRequest = { saving = false },
-            title = { Text(stringResource(R.string.save_preset)) },
-            text = {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it.take(24) },
-                    singleLine = true,
-                    placeholder = { Text(stringResource(R.string.preset_name_hint)) },
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { onSavePreset(name); saving = false }) { Text(stringResource(R.string.save)) }
-            },
-            dismissButton = { TextButton(onClick = { saving = false }) { Text(stringResource(R.string.cancel)) } },
-        )
-    }
-
-    deleting?.let { preset ->
-        AlertDialog(
-            onDismissRequest = { deleting = null },
-            title = { Text(stringResource(R.string.delete_preset_title, preset.name)) },
-            text = { Text(stringResource(R.string.delete_preset_text)) },
-            confirmButton = {
-                TextButton(onClick = { onDeletePreset(preset); deleting = null }) { Text(stringResource(R.string.delete)) }
-            },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cancel)) } },
-        )
     }
 }
 
@@ -552,3 +517,5 @@ private fun PhaseStepper(
 }
 
 private fun roundHalf(v: Double): Double = Math.round(v * 2) / 2.0
+
+private fun roundTenth(v: Double): Double = Math.round(v * 10) / 10.0

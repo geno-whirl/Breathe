@@ -31,6 +31,10 @@ class Store private constructor(private val context: Context) {
     private val _presets = MutableStateFlow(readPresets())
     val presets: StateFlow<List<Preset>> = _presets.asStateFlow()
 
+    /** The preset last chosen or saved, so its changes can be saved back to it. */
+    private val _lastPresetId = MutableStateFlow(prefs.getString(KEY_LAST_PRESET, null))
+    val lastPresetId: StateFlow<String?> = _lastPresetId.asStateFlow()
+
     fun updatePattern(transform: (BreathPattern) -> BreathPattern) {
         val updated = transform(_pattern.value)
         if (updated == _pattern.value) return
@@ -52,11 +56,32 @@ class Store private constructor(private val context: Context) {
         get() = prefs.getBoolean(KEY_NOTIFICATION_PROMPT, false)
         set(value) = prefs.edit().putBoolean(KEY_NOTIFICATION_PROMPT, value).apply()
 
-    /** The preset whose rhythm matches the current pattern, if any. */
+    /** The preset whose rhythm matches the current pattern, preferring the last one chosen. */
     fun matchingPreset(pattern: BreathPattern = _pattern.value): Preset? =
-        _presets.value.firstOrNull { it.pattern.sameRhythmAs(pattern) }
+        _presets.value.firstOrNull { it.id == _lastPresetId.value && it.pattern.sameRhythmAs(pattern) }
+            ?: _presets.value.firstOrNull { it.pattern.sameRhythmAs(pattern) }
 
-    fun applyPreset(preset: Preset) = updatePattern { preset.pattern }
+    fun applyPreset(preset: Preset) {
+        setLastPreset(preset.id)
+        updatePattern { preset.pattern }
+    }
+
+    /** Saves the current pattern into [id], and renames it when [name] is given. */
+    fun updatePreset(id: String, name: String? = null, pattern: BreathPattern? = _pattern.value) {
+        setPresets(
+            _presets.value.map { p ->
+                if (p.id != id) {
+                    p
+                } else {
+                    p.copy(
+                        name = name?.trim()?.ifEmpty { null } ?: p.name,
+                        pattern = pattern ?: p.pattern,
+                    )
+                }
+            },
+        )
+        if (pattern != null) setLastPreset(id)
+    }
 
     /** Moves to the previous (-1) or next (+1) preset, wrapping around. */
     fun cyclePreset(delta: Int) {
@@ -74,10 +99,19 @@ class Store private constructor(private val context: Context) {
     fun savePreset(name: String): Preset {
         val preset = Preset(UUID.randomUUID().toString(), name.trim().ifEmpty { "My pattern" }, _pattern.value)
         setPresets(_presets.value + preset)
+        setLastPreset(preset.id)
         return preset
     }
 
-    fun deletePreset(id: String) = setPresets(_presets.value.filterNot { it.id == id })
+    fun deletePreset(id: String) {
+        if (_lastPresetId.value == id) setLastPreset(null)
+        setPresets(_presets.value.filterNot { it.id == id })
+    }
+
+    private fun setLastPreset(id: String?) {
+        _lastPresetId.value = id
+        prefs.edit().putString(KEY_LAST_PRESET, id).apply()
+    }
 
     fun restoreBuiltInPresets() {
         val existing = _presets.value.map { it.id }.toSet()
@@ -194,37 +228,12 @@ class Store private constructor(private val context: Context) {
         .put("keepScreenOn", s.keepScreenOn)
         .put("theme", s.theme.name)
 
-    private fun patternToJson(p: BreathPattern) = JSONObject()
-        .put("inhale", p.inhale)
-        .put("holdIn", p.holdIn)
-        .put("exhale", p.exhale)
-        .put("holdOut", p.holdOut)
-        .put("mode", p.mode.name)
-        .put("cycleSeconds", p.cycleSeconds)
-        .put("cyclesPerMinute", p.cyclesPerMinute)
-
-    private fun patternFromJson(o: JSONObject): BreathPattern {
-        val d = BreathPattern()
-        val p = BreathPattern(
-            inhale = o.optInt("inhale", d.inhale),
-            holdIn = o.optInt("holdIn", d.holdIn),
-            exhale = o.optInt("exhale", d.exhale),
-            holdOut = o.optInt("holdOut", d.holdOut),
-            mode = enumOr(o.optString("mode"), d.mode),
-            cycleSeconds = o.optDouble("cycleSeconds", d.cycleSeconds),
-            cyclesPerMinute = o.optDouble("cyclesPerMinute", d.cyclesPerMinute),
-        )
-        return if (p.unitSum == 0) d else p
-    }
-
-    private inline fun <reified E : Enum<E>> enumOr(name: String?, default: E): E =
-        enumValues<E>().firstOrNull { it.name == name } ?: default
-
     companion object {
         private const val KEY_PATTERN = "pattern"
         private const val KEY_SETTINGS = "settings"
         private const val KEY_PRESETS = "presets"
         private const val KEY_KNOWN_BUILT_INS = "knownBuiltIns"
+        private const val KEY_LAST_PRESET = "lastPresetId"
 
         /** The built-ins of the first release, which stored no record of them. */
         private val LEGACY_BUILT_INS = setOf("box", "478", "coherent", "calm", "triangle", "deep")
@@ -239,3 +248,31 @@ class Store private constructor(private val context: Context) {
             }
     }
 }
+
+internal fun patternToJson(p: BreathPattern) = JSONObject()
+    .put("inhale", p.inhale)
+    .put("holdIn", p.holdIn)
+    .put("exhale", p.exhale)
+    .put("holdOut", p.holdOut)
+    .put("mode", p.mode.name)
+    .put("cycleSeconds", p.cycleSeconds)
+    .put("cyclesPerMinute", p.cyclesPerMinute)
+    .put("countSeconds", p.countSeconds)
+
+internal fun patternFromJson(o: JSONObject): BreathPattern {
+    val d = BreathPattern()
+    val p = BreathPattern(
+        inhale = o.optInt("inhale", d.inhale),
+        holdIn = o.optInt("holdIn", d.holdIn),
+        exhale = o.optInt("exhale", d.exhale),
+        holdOut = o.optInt("holdOut", d.holdOut),
+        mode = enumOr(o.optString("mode"), d.mode),
+        cycleSeconds = o.optDouble("cycleSeconds", d.cycleSeconds),
+        cyclesPerMinute = o.optDouble("cyclesPerMinute", d.cyclesPerMinute),
+        countSeconds = o.optDouble("countSeconds", d.countSeconds),
+    )
+    return if (p.unitSum == 0) d else p
+}
+
+internal inline fun <reified E : Enum<E>> enumOr(name: String?, default: E): E =
+    enumValues<E>().firstOrNull { it.name == name } ?: default

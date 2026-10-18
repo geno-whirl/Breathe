@@ -50,7 +50,6 @@ import com.genowhirl.breathe.ui.theme.LocalAmbience
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import com.genowhirl.breathe.ui.theme.PhaseLabelStyle
 import kotlinx.coroutines.delay
-import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.min
 import kotlin.math.sin
@@ -136,7 +135,8 @@ fun BreathVisual(
                 textAlign = TextAlign.Center,
             )
             if (active && settings.showCountdown) {
-                val seconds = ceil(state.phaseRemaining(now) / 1000.0).toInt().coerceAtLeast(0)
+                // Seconds left, or counts left in Count mode.
+                val seconds = pattern.countdown(state.phaseRemaining(now))
                 Text(
                     seconds.toString(),
                     style = if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,

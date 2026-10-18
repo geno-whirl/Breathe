@@ -18,9 +18,12 @@ import com.genowhirl.breathe.audio.Cue
 import com.genowhirl.breathe.audio.CuePlayer
 import com.genowhirl.breathe.audio.Haptics
 import com.genowhirl.breathe.audio.toCue
+import com.genowhirl.breathe.data.SessionLog
 import com.genowhirl.breathe.data.Store
 import com.genowhirl.breathe.model.AppSettings
+import com.genowhirl.breathe.model.BreathPattern
 import com.genowhirl.breathe.model.BreathRunner
+import com.genowhirl.breathe.model.SessionRecord
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.RunnerEvent
 import com.genowhirl.breathe.model.VibrationMode
@@ -54,6 +57,9 @@ class BreathingService : Service() {
     private var loop: Job? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var lastNotificationAt = 0L
+    private var startedAt = 0L
+    private var startPreset = ""
+    private var startPattern = BreathPattern()
     private var lastNotifiedStatus: Status? = null
     private var lastTickSecond = -1L
 
@@ -88,6 +94,8 @@ class BreathingService : Service() {
     }
 
     override fun onDestroy() {
+        runner?.let { record(it, finished = false) }
+        runner = null
         loop?.cancel()
         scope.cancel()
         haptics.cancel()
@@ -106,6 +114,9 @@ class BreathingService : Service() {
             limit = { store.settings.value.sessionLimit },
         )
         runner = r
+        startedAt = System.currentTimeMillis()
+        startPreset = store.matchingPreset()?.name ?: getString(R.string.custom_pattern)
+        startPattern = store.pattern.value
         acquireWakeLock()
         val s = settings
         if (s.soundEnabled) player.prepare(s.soundStyle)
@@ -138,6 +149,7 @@ class BreathingService : Service() {
         runner = null
         haptics.cancel()
         releaseWakeLock()
+        if (r != null) record(r, finished)
         if (finished && r != null) {
             val now = SystemClock.elapsedRealtime()
             Session.publish(
@@ -154,6 +166,24 @@ class BreathingService : Service() {
         BreathWidget.refresh(this)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
+    }
+
+    /** Adds the session to the history, unless it was only a few seconds long. */
+    private fun record(r: BreathRunner, finished: Boolean) {
+        val active = r.activeMillis(SystemClock.elapsedRealtime())
+        if (active < SessionLog.MIN_ACTIVE_MILLIS) return
+        SessionLog.get(this).add(
+            SessionRecord(
+                startedAt = startedAt,
+                endedAt = System.currentTimeMillis(),
+                activeMillis = active,
+                // A finished session ends exactly at the end of its last cycle.
+                cycles = if (finished) r.cycle else r.cycle - 1,
+                completed = finished,
+                presetName = startPreset,
+                pattern = startPattern,
+            ),
+        )
     }
 
     private fun startLoop() {
@@ -175,8 +205,10 @@ class BreathingService : Service() {
                 var wakeAt = r.phaseEnd
                 if (widgets) wakeAt = min(wakeAt, now + WIDGET_FRAME_MS)
                 if (settings.tickSeconds && settings.soundEnabled) {
-                    val nextSecond = r.phaseStart + ((now - r.phaseStart) / 1000 + 1) * 1000
-                    if (nextSecond < r.phaseEnd - 150) wakeAt = min(wakeAt, nextSecond)
+                    // Ticks fall on every second, or on every count in Count mode.
+                    val step = store.pattern.value.countdownStepMillis
+                    val nextTick = r.phaseStart + ((now - r.phaseStart) / step + 1) * step
+                    if (nextTick < r.phaseEnd - 150) wakeAt = min(wakeAt, nextTick)
                 }
                 delay(max(4L, wakeAt - SystemClock.elapsedRealtime()))
             }
@@ -214,9 +246,9 @@ class BreathingService : Service() {
     private fun maybeTick(r: BreathRunner, now: Long) {
         val s = settings
         if (!s.tickSeconds || !s.soundEnabled) return
-        val second = (now - r.phaseStart) / 1000
-        if (second > lastTickSecond && second > 0 && now < r.phaseEnd - 150) {
-            lastTickSecond = second
+        val tick = (now - r.phaseStart) / store.pattern.value.countdownStepMillis
+        if (tick > lastTickSecond && tick > 0 && now < r.phaseEnd - 150) {
+            lastTickSecond = tick
             player.play(s.soundStyle, Cue.TICK, s.soundVolume)
         }
     }
