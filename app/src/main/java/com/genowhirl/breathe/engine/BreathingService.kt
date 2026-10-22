@@ -27,9 +27,11 @@ import com.genowhirl.breathe.model.SessionRecord
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.RunnerEvent
 import com.genowhirl.breathe.model.VibrationMode
+import com.genowhirl.breathe.model.countdownInCounts
 import com.genowhirl.breathe.model.sessionLimit
 import com.genowhirl.breathe.ui.MainActivity
 import com.genowhirl.breathe.ui.cycleLabel
+import com.genowhirl.breathe.ui.formatClock
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import com.genowhirl.breathe.widget.BreathWidget
 import kotlinx.coroutines.CoroutineScope
@@ -40,6 +42,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 
@@ -58,6 +61,7 @@ class BreathingService : Service() {
     private var wakeLock: PowerManager.WakeLock? = null
     private var lastNotificationAt = 0L
     private var startedAt = 0L
+    private var finishing = false
     private var startPreset = ""
     private var startPattern = BreathPattern()
     private var lastNotifiedStatus: Status? = null
@@ -98,7 +102,8 @@ class BreathingService : Service() {
         runner = null
         loop?.cancel()
         scope.cancel()
-        haptics.cancel()
+        // Let the end-of-session vibration play out; the service stops right after starting it.
+        if (!finishing) haptics.cancel()
         player.release()
         releaseWakeLock()
         if (Session.state.value.isActive) Session.publish(SessionState())
@@ -114,6 +119,8 @@ class BreathingService : Service() {
             limit = { store.settings.value.sessionLimit },
         )
         runner = r
+        finishing = false
+        getSystemService(NotificationManager::class.java)?.cancel(COMPLETE_NOTIFICATION_ID)
         startedAt = System.currentTimeMillis()
         startPreset = store.matchingPreset()?.name ?: getString(R.string.custom_pattern)
         startPattern = store.pattern.value
@@ -147,10 +154,12 @@ class BreathingService : Service() {
         loop?.cancel()
         val r = runner
         runner = null
-        haptics.cancel()
+        finishing = finished
+        if (!finished) haptics.cancel()
         releaseWakeLock()
         if (r != null) record(r, finished)
         if (finished && r != null) {
+            postCompletion(r)
             val now = SystemClock.elapsedRealtime()
             Session.publish(
                 SessionState(
@@ -205,9 +214,9 @@ class BreathingService : Service() {
                 var wakeAt = r.phaseEnd
                 if (widgets) wakeAt = min(wakeAt, now + WIDGET_FRAME_MS)
                 if (settings.tickSeconds && settings.soundEnabled) {
-                    // Ticks fall on every second, or on every count in Count mode.
-                    val step = store.pattern.value.countdownStepMillis
-                    val nextTick = r.phaseStart + ((now - r.phaseStart) / step + 1) * step
+                    // Ticks follow the countdown: every second, or every count.
+                    val step = tickStepMillis()
+                    val nextTick = r.phaseStart + (floor((now - r.phaseStart) / step + 1) * step).toLong()
                     if (nextTick < r.phaseEnd - 150) wakeAt = min(wakeAt, nextTick)
                 }
                 delay(max(4L, wakeAt - SystemClock.elapsedRealtime()))
@@ -243,10 +252,15 @@ class BreathingService : Service() {
         }
     }
 
+    private fun tickStepMillis(): Double {
+        val pattern = store.pattern.value
+        return pattern.countdownStepMillis(settings.countdownInCounts(pattern.mode))
+    }
+
     private fun maybeTick(r: BreathRunner, now: Long) {
         val s = settings
         if (!s.tickSeconds || !s.soundEnabled) return
-        val tick = (now - r.phaseStart) / store.pattern.value.countdownStepMillis
+        val tick = floor((now - r.phaseStart + 1) / tickStepMillis()).toLong()
         if (tick > lastTickSecond && tick > 0 && now < r.phaseEnd - 150) {
             lastTickSecond = tick
             player.play(s.soundStyle, Cue.TICK, s.soundVolume)
@@ -339,7 +353,41 @@ class BreathingService : Service() {
             setShowBadge(false)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
         }
-        nm.createNotificationChannel(channel)
+        // Silent: the app plays its own finishing sound and vibration.
+        val complete = NotificationChannel(
+            COMPLETE_CHANNEL_ID,
+            getString(R.string.complete_channel_name),
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            description = getString(R.string.complete_channel_description)
+            setSound(null, null)
+            enableVibration(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        nm.createNotificationChannels(listOf(channel, complete))
+    }
+
+    /** A note that stays after the session, with what was done. */
+    private fun postCompletion(r: BreathRunner) {
+        val active = r.activeMillis(SystemClock.elapsedRealtime())
+        val cycles = resources.getQuantityString(R.plurals.cycles_count, r.cycle, r.cycle)
+        val notification = NotificationCompat.Builder(this, COMPLETE_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_breath)
+            .setContentTitle(getString(R.string.session_complete))
+            .setContentText(getString(R.string.session_complete_detail, startPreset, cycles, formatClock(active)))
+            .setColor(PhaseColors.argb(Phase.INHALE))
+            .setAutoCancel(true)
+            .setSilent(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setContentIntent(
+                PendingIntent.getActivity(
+                    this, 4,
+                    Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+                ),
+            )
+            .build()
+        runCatching { getSystemService(NotificationManager::class.java)?.notify(COMPLETE_NOTIFICATION_ID, notification) }
     }
 
     private fun isInteractive(): Boolean = getSystemService(PowerManager::class.java)?.isInteractive != false
@@ -368,6 +416,8 @@ class BreathingService : Service() {
 
         private const val CHANNEL_ID = "session"
         private const val NOTIFICATION_ID = 1
+        private const val COMPLETE_CHANNEL_ID = "complete"
+        private const val COMPLETE_NOTIFICATION_ID = 2
         private const val WIDGET_FRAME_MS = 150L
 
         fun phaseLabel(phase: Phase): Int = when (phase) {

@@ -16,8 +16,9 @@ class HapticPatternsTest {
     }
 
     @Test
-    fun cuesAreShortTaps() {
-        for (cue in Cue.entries) {
+    fun stageCuesAreShortTaps() {
+        // The finish is deliberately longer; see finishIsLongerThanAnyStageCue.
+        for (cue in Cue.entries - Cue.FINISH) {
             for (vary in listOf(true, false)) {
                 val w = HapticPatterns.cue(cue, 0.6f, vary)
                 assertEquals(w.timings.size, w.amplitudes.size)
@@ -25,6 +26,19 @@ class HapticPatternsTest {
                 w.timings.forEachIndexed { i, t -> if (i % 2 == 1) assertTrue("$cue $t", t <= 170) }
             }
         }
+    }
+
+    @Test
+    fun finishIsLongerThanAnyStageCue() {
+        for (vary in listOf(true, false)) {
+            val finish = HapticPatterns.cue(Cue.FINISH, 0.6f, vary)
+            assertEquals(finish.timings.size, finish.amplitudes.size)
+            val longestStage = listOf(Cue.INHALE, Cue.EXHALE, Cue.HOLD_IN).maxOf { HapticPatterns.cue(it, 0.6f, vary).durationMs }
+            assertTrue(finish.durationMs > 3 * longestStage)
+        }
+        // Without strength control the waveform must alternate off/on.
+        val onOff = HapticPatterns.cue(Cue.FINISH, 0.6f, false)
+        onOff.amplitudes.forEachIndexed { i, a -> assertEquals(i % 2 == 1, a > 0) }
     }
 
     @Test

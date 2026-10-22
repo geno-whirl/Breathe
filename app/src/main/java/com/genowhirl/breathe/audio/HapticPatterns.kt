@@ -4,10 +4,12 @@ import com.genowhirl.breathe.model.Phase
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 
 /**
- * A vibration waveform: [timings] alternate off/on durations in ms, starting with "off", and
- * [amplitudes] holds the matching strengths (0 = off, 1..255 = on).
+ * A vibration waveform: [timings] are segment durations in ms and [amplitudes] the matching
+ * strengths (0 = off, 1..255 = on). Waveforms for motors without strength control alternate
+ * off/on, starting with "off".
  */
 class Waveform(val timings: LongArray, val amplitudes: IntArray) {
     val durationMs: Long get() = timings.sum()
@@ -44,11 +46,29 @@ object HapticPatterns {
             Cue.EXHALE -> Waveform(longArrayOf(0, ms(65), 120, ms(45)), intArrayOf(0, a(1f), 0, a(0.5f)))
             Cue.HOLD_IN, Cue.HOLD_OUT -> Waveform(longArrayOf(0, ms(40)), intArrayOf(0, a(0.65f)))
             Cue.TICK -> Waveform(longArrayOf(0, ms(18)), intArrayOf(0, a(0.35f)))
-            Cue.FINISH -> Waveform(
-                longArrayOf(0, ms(60), 170, ms(60), 170, ms(120)),
-                intArrayOf(0, a(1f), 0, a(1f), 0, a(0.8f)),
-            )
+            Cue.FINISH -> finish(strength, canVaryStrength)
         }
+    }
+
+    /**
+     * The end of a session, unlike any stage cue: three firm taps, then a long swell that fades
+     * away. Without strength control, the swell becomes one long pulse.
+     */
+    private fun finish(strength: Float, canVaryStrength: Boolean): Waveform {
+        if (!canVaryStrength) {
+            return Waveform(longArrayOf(0, 80, 160, 80, 160, 80, 300, 500), intArrayOf(0, 255, 0, 255, 0, 255, 0, 255))
+        }
+        val timings = arrayListOf(0L, 60L, 150L, 60L, 150L, 60L, 260L)
+        val amps = arrayListOf(0, amplitude(1f, strength), 0, amplitude(1f, strength), 0, amplitude(1f, strength), 0)
+        // A swell up and back down over about a second.
+        val steps = 16
+        for (i in 0 until steps) {
+            val t = i.toDouble() / (steps - 1)
+            val level = (sin(PI * t) * (1 - 0.35 * t)).toFloat()
+            timings += 65L
+            amps += amplitude(0.15f + 0.85f * level, strength)
+        }
+        return Waveform(timings.toLongArray(), amps.toIntArray())
     }
 
     /**

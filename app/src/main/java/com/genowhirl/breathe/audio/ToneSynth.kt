@@ -102,7 +102,7 @@ object ToneSynth {
     fun render(style: SoundStyle, cue: Cue): ShortArray {
         val dry = when (cue) {
             Cue.TICK -> tick()
-            Cue.FINISH -> arpeggio(instrument(style))
+            Cue.FINISH -> finale(instrument(style))
             else -> strike(instrument(style), pitch(cue))
         }
         val inst = if (cue == Cue.TICK) null else instrument(style)
@@ -125,13 +125,20 @@ object ToneSynth {
         return out
     }
 
-    private fun arpeggio(inst: Instrument): FloatArray {
-        // A major: A4, C#5, E5, rolled gently.
-        val notes = listOf(440.00, 554.37, 659.26)
-        val gap = (0.32 * SAMPLE_RATE).toInt()
-        val parts = notes.map { strike(inst, it) }
-        val out = FloatArray(parts.maxOf { it.size } + gap * (notes.size - 1))
-        parts.forEachIndexed { i, p -> for (s in p.indices) out[s + i * gap] += p[s] * 0.75f }
+    /**
+     * The end of a session, unlike any stage cue: a rising A major chord (A4, C#5, E5, A5) rolled
+     * upward, then, after a breath, a low A3 that lets it settle, like a closing bell.
+     */
+    private fun finale(inst: Instrument): FloatArray {
+        val chord = listOf(440.00, 554.37, 659.26, 880.00)
+        val roll = (0.17 * SAMPLE_RATE).toInt()
+        val lowAt = roll * (chord.size - 1) + (1.1 * SAMPLE_RATE).toInt()
+        val parts = chord.mapIndexed { i, f -> i * roll to strike(inst, f) } + (lowAt to strike(inst, 220.0))
+        val out = FloatArray(parts.maxOf { (start, p) -> start + p.size })
+        parts.forEachIndexed { i, (start, p) ->
+            val g = if (i < chord.size) 0.55f else 0.9f
+            for (k in p.indices) out[start + k] += p[k] * g
+        }
         return out
     }
 

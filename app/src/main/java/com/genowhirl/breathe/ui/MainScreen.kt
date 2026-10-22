@@ -58,6 +58,7 @@ import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.Preset
 import com.genowhirl.breathe.model.SessionLength
 import com.genowhirl.breathe.model.TimingMode
+import com.genowhirl.breathe.model.toggleCountdown
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import kotlinx.coroutines.delay
 
@@ -93,6 +94,7 @@ fun MainScreen(
                 .weight(1f)
                 .heightIn(min = 120.dp)
                 .fillMaxWidth(),
+            onToggleCountdown = { onSettings { it.toggleCountdown(pattern.mode) } },
         )
 
         StatusLine(session, pattern, presets, settings)

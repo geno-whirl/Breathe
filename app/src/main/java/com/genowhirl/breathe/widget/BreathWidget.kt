@@ -22,6 +22,7 @@ import com.genowhirl.breathe.engine.SessionState
 import com.genowhirl.breathe.engine.Status
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.breathLevel
+import com.genowhirl.breathe.model.countdownInCounts
 import com.genowhirl.breathe.ui.MainActivity
 import com.genowhirl.breathe.ui.cycleLabel
 import com.genowhirl.breathe.ui.formatSeconds
@@ -115,7 +116,7 @@ object BreathWidget {
         views.setTextColor(R.id.phase, if (active) phaseColor else 0xFFE6E9F2.toInt())
 
         val countdown = if (active) {
-            pattern.countdown(state.phaseRemaining(now)).toString()
+            pattern.countdown(state.phaseRemaining(now), settings.countdownInCounts(pattern.mode)).toString()
         } else {
             "${pattern.inhale}·${pattern.holdIn}·${pattern.exhale}·${pattern.holdOut}"
         }

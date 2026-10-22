@@ -1,5 +1,7 @@
 package com.genowhirl.breathe.model
 
+import kotlin.math.abs
+import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.roundToLong
 
@@ -70,13 +72,28 @@ data class BreathPattern(
     val countMillis: Long
         get() = (countSeconds.coerceIn(MIN_COUNT_SECONDS, MAX_COUNT_SECONDS) * 1000).roundToLong()
 
-    /** What the on-screen countdown counts: counts in [TimingMode.COUNT], seconds otherwise. */
-    val countdownStepMillis: Long get() = if (mode == TimingMode.COUNT) countMillis else 1000L
+    /**
+     * Length of one count: the set count length in [TimingMode.COUNT], otherwise the cycle shared
+     * out over its units (a 1-4-2 pattern over 21 s has 3 s counts).
+     */
+    val unitMillis: Double
+        get() = when {
+            unitSum == 0 -> 1000.0
+            mode == TimingMode.COUNT -> countMillis.toDouble()
+            else -> cycleMillis.toDouble() / unitSum
+        }
+
+    /** Whether counting the pattern's counts differs from counting seconds. */
+    val hasCounts: Boolean get() = mode != TimingMode.SECONDS && abs(unitMillis - 1000.0) >= 1.0
+
+    /** What one step of the countdown lasts: a count when [inCounts] and the pattern has counts. */
+    fun countdownStepMillis(inCounts: Boolean): Double = if (inCounts && hasCounts) unitMillis else 1000.0
 
     /** The number shown for a stage with [remainingMs] left: 4, 3, 2, 1. */
-    fun countdown(remainingMs: Long): Int {
-        val step = countdownStepMillis
-        return ((remainingMs.coerceAtLeast(0) + step - 1) / step).toInt()
+    fun countdown(remainingMs: Long, inCounts: Boolean): Int {
+        if (remainingMs <= 0) return 0
+        // Stage lengths are rounded to whole milliseconds; allow for that at the boundaries.
+        return ceil((remainingMs - 1) / countdownStepMillis(inCounts)).toInt().coerceAtLeast(1)
     }
 
     val breathsPerMinute: Double get() = if (cycleMillis == 0L) 0.0 else 60_000.0 / cycleMillis

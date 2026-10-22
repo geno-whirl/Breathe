@@ -33,6 +33,10 @@ data class AppSettings(
     val animationStyle: AnimationStyle = AnimationStyle.ORB,
     val naturalEasing: Boolean = true,
     val showCountdown: Boolean = true,
+    /** Count down counts instead of seconds in Count mode (tap the animation to switch). */
+    val countsInCountMode: Boolean = true,
+    /** Count down counts instead of seconds in the Cycle and Per-minute modes. */
+    val countsInRatioModes: Boolean = false,
 
     val sessionLength: SessionLength = SessionLength.ENDLESS,
     val sessionMinutes: Int = 10,
@@ -68,3 +72,17 @@ fun AppSettings.plannedCycles(cycleMillis: Long): Int? = when (sessionLength) {
 
 /** Total breathing time of the session, or null when endless. */
 fun AppSettings.plannedMillis(cycleMillis: Long): Long? = plannedCycles(cycleMillis)?.let { it * cycleMillis }
+
+/** Whether the countdown shows counts rather than seconds for patterns timed by [mode]. */
+fun AppSettings.countdownInCounts(mode: TimingMode): Boolean = when (mode) {
+    TimingMode.SECONDS -> false
+    TimingMode.COUNT -> countsInCountMode
+    TimingMode.CYCLE_LENGTH, TimingMode.PER_MINUTE -> countsInRatioModes
+}
+
+/** Switches the countdown between seconds and counts for patterns timed by [mode]. */
+fun AppSettings.toggleCountdown(mode: TimingMode): AppSettings = when (mode) {
+    TimingMode.SECONDS -> this
+    TimingMode.COUNT -> copy(countsInCountMode = !countsInCountMode)
+    TimingMode.CYCLE_LENGTH, TimingMode.PER_MINUTE -> copy(countsInRatioModes = !countsInRatioModes)
+}

@@ -192,6 +192,8 @@ class Store private constructor(private val context: Context) {
                 animationStyle = enumOr(o.optString("animationStyle"), d.animationStyle),
                 naturalEasing = o.optBoolean("naturalEasing", d.naturalEasing),
                 showCountdown = o.optBoolean("showCountdown", d.showCountdown),
+                countsInCountMode = o.optBoolean("countsInCountMode", d.countsInCountMode),
+                countsInRatioModes = o.optBoolean("countsInRatioModes", d.countsInRatioModes),
                 // Older versions stored only minutes, with 0 meaning endless.
                 sessionLength = if (o.has("sessionLength")) {
                     enumOr(o.optString("sessionLength"), d.sessionLength)
@@ -222,6 +224,8 @@ class Store private constructor(private val context: Context) {
         .put("animationStyle", s.animationStyle.name)
         .put("naturalEasing", s.naturalEasing)
         .put("showCountdown", s.showCountdown)
+        .put("countsInCountMode", s.countsInCountMode)
+        .put("countsInRatioModes", s.countsInRatioModes)
         .put("sessionLength", s.sessionLength.name)
         .put("sessionMinutes", s.sessionMinutes)
         .put("sessionCycles", s.sessionCycles)

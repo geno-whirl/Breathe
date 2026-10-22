@@ -9,6 +9,8 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +48,7 @@ import com.genowhirl.breathe.model.AppSettings
 import com.genowhirl.breathe.model.BreathPattern
 import com.genowhirl.breathe.model.Phase
 import com.genowhirl.breathe.model.breathLevel
+import com.genowhirl.breathe.model.countdownInCounts
 import com.genowhirl.breathe.ui.theme.LocalAmbience
 import com.genowhirl.breathe.ui.theme.PhaseColors
 import com.genowhirl.breathe.ui.theme.PhaseLabelStyle
@@ -60,6 +63,8 @@ fun BreathVisual(
     pattern: BreathPattern,
     settings: AppSettings,
     modifier: Modifier = Modifier,
+    /** Switches the countdown between seconds and counts; null when the pattern has no counts. */
+    onToggleCountdown: (() -> Unit)? = null,
 ) {
     val animate = settings.animationEnabled
     var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
@@ -104,7 +109,20 @@ fun BreathVisual(
         0f
     }
 
-    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+    val inCounts = settings.countdownInCounts(pattern.mode) && pattern.hasCounts
+    val toggleLabel = stringResource(R.string.countdown_toggle)
+    val tappable = if (onToggleCountdown != null && pattern.hasCounts && settings.showCountdown) {
+        Modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClickLabel = toggleLabel,
+            onClick = onToggleCountdown,
+        )
+    } else {
+        Modifier
+    }
+
+    BoxWithConstraints(modifier.then(tappable), contentAlignment = Alignment.Center) {
         val compact = min(maxWidth.value, maxHeight.value) < 300f
         if (animate) {
             Canvas(Modifier.fillMaxSize()) {
@@ -135,13 +153,20 @@ fun BreathVisual(
                 textAlign = TextAlign.Center,
             )
             if (active && settings.showCountdown) {
-                // Seconds left, or counts left in Count mode.
-                val seconds = pattern.countdown(state.phaseRemaining(now))
+                // Seconds left, or counts left; tap to switch when the pattern has counts.
+                val left = pattern.countdown(state.phaseRemaining(now), inCounts)
                 Text(
-                    seconds.toString(),
+                    left.toString(),
                     style = if (compact) MaterialTheme.typography.displayMedium else MaterialTheme.typography.displayLarge,
                     color = textColor,
                 )
+                if (pattern.hasCounts) {
+                    Text(
+                        stringResource(if (inCounts) R.string.unit_counts else R.string.unit_seconds),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = textColor.copy(alpha = 0.6f),
+                    )
+                }
             } else if (state.status == Status.FINISHED) {
                 Text(
                     stringResource(R.string.finished_summary, state.cycle, formatClock(state.activeMillis)),

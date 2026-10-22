@@ -91,7 +91,7 @@
     <string name="volume">Volume</string>
     <string name="cue_on_holds">Cue holds too</string>
     <string name="tick_seconds">Tick every second</string>
-    <string name="tick_seconds_hint">A faint click to help you count (on every count in Count mode)</string>
+    <string name="tick_seconds_hint">A faint click on every second, or every count when the countdown shows counts</string>
     <string name="vibration">Vibration</string>
     <string name="vibration_cues">Vibration cues</string>
     <string name="vibration_pulses">Pulses</string>
@@ -107,6 +107,9 @@
     <string name="natural_easing">Natural pace</string>
     <string name="natural_easing_hint">Ease in and out of each breath instead of moving at a constant speed</string>
     <string name="show_countdown">Show countdown</string>
+    <string name="countdown_toggle">Switch between seconds and counts</string>
+    <string name="unit_counts">counts</string>
+    <string name="unit_seconds">seconds</string>
     <string name="session">Session</string>
     <string name="keep_screen_on">Keep screen on</string>
     <string name="keep_screen_on_hint">While a session runs with the app open</string>
@@ -149,6 +152,10 @@
     <!-- Notification and widget -->
     <string name="channel_name">Breathing session</string>
     <string name="channel_description">Shows the running session and its controls</string>
+    <string name="complete_channel_name">Session complete</string>
+    <string name="complete_channel_description">A note when a session reaches its set length</string>
+    <string name="session_complete">Session complete</string>
+    <string name="session_complete_detail">%1$s · %2$s · %3$s</string>
     <string name="notification_detail">%1$s · %2$s</string>
     <string name="widget_description">Start, pause and follow a breathing session, switch presets and toggle sound or vibration.</string>
     <string name="widget_running_detail">%1$s · %2$s</string>

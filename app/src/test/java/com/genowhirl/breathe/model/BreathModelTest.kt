@@ -34,13 +34,39 @@ class BreathPatternTest {
         val p = BreathPattern(4, 7, 8, 0, mode = TimingMode.COUNT, countSeconds = 0.8)
         assertEquals(listOf(3200L, 5600L, 6400L, 0L), p.phaseMillis().toList())
         // A 4-count inhale shows 4, 3, 2, 1, one count (0.8 s) each.
-        assertEquals(4, p.countdown(3200))
-        assertEquals(4, p.countdown(2401))
-        assertEquals(3, p.countdown(2400))
-        assertEquals(1, p.countdown(1))
-        assertEquals(0, p.countdown(0))
-        // Other modes keep counting seconds.
-        assertEquals(4, BreathPattern(4, 4, 4, 4).countdown(3200))
+        assertEquals(4, p.countdown(3200, inCounts = true))
+        assertEquals(4, p.countdown(2402, inCounts = true))
+        assertEquals(3, p.countdown(2400, inCounts = true))
+        assertEquals(1, p.countdown(1, inCounts = true))
+        assertEquals(0, p.countdown(0, inCounts = true))
+        // Or seconds, when switched.
+        assertEquals(4, p.countdown(3200, inCounts = false))
+        // Seconds mode only has seconds.
+        assertEquals(4, BreathPattern(4, 4, 4, 4).countdown(3200, inCounts = true))
+        assertEquals(false, BreathPattern(4, 4, 4, 4).hasCounts)
+    }
+
+    @Test
+    fun ratioModesCountTheirUnitsDespiteRounding() {
+        // 1-4-2 over 20 s: counts of 2857.14 ms, stages rounded to whole milliseconds.
+        val p = BreathPattern(1, 4, 2, 0, mode = TimingMode.CYCLE_LENGTH, cycleSeconds = 20.0)
+        assertEquals(true, p.hasCounts)
+        val ms = p.phaseMillis()
+        assertEquals(1, p.countdown(ms[0], inCounts = true))
+        assertEquals(4, p.countdown(ms[1], inCounts = true))
+        assertEquals(2, p.countdown(ms[2], inCounts = true))
+        assertEquals(12, p.countdown(ms[1], inCounts = false))
+    }
+
+    @Test
+    fun countdownChoiceIsRememberedPerKindOfMode() {
+        val s = AppSettings()
+        assertEquals(true, s.countdownInCounts(TimingMode.COUNT))
+        assertEquals(false, s.countdownInCounts(TimingMode.CYCLE_LENGTH))
+        val toggled = s.toggleCountdown(TimingMode.PER_MINUTE)
+        assertEquals(true, toggled.countdownInCounts(TimingMode.CYCLE_LENGTH))
+        assertEquals(true, toggled.countdownInCounts(TimingMode.COUNT))
+        assertEquals(false, toggled.countdownInCounts(TimingMode.SECONDS))
     }
 
     @Test

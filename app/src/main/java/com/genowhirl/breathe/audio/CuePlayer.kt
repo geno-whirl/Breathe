@@ -122,6 +122,7 @@ class CuePlayer(context: Context) {
     }
 
     private companion object {
-        const val RING_OUT_MS = 3_500L
+        /** Long enough for the end-of-session sound to ring out completely. */
+        const val RING_OUT_MS = 7_500L
     }
 }
