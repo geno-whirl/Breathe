@@ -1,0 +1,31 @@
+# Build recipe for F-Droid. Submit it as metadata/com.genowhirl.breathe.yml in a merge request
+# to https://gitlab.com/fdroid/fdroiddata (see PUBLISHING.md).
+Categories:
+  - Meditation
+  - Mental Health
+  - Sports & Health
+License: GPL-3.0-or-later
+AuthorName: geno-whirl
+SourceCode: https://github.com/geno-whirl/Breathe
+IssueTracker: https://github.com/geno-whirl/Breathe/issues
+Changelog: https://github.com/geno-whirl/Breathe/releases
+
+AutoName: Breathe
+
+RepoType: git
+Repo: https://github.com/geno-whirl/Breathe.git
+
+Builds:
+  - versionName: '1.0'
+    versionCode: 1
+    commit: v1.0
+    subdir: app
+    rm:
+      - app/debug.keystore
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: '1.0'
+CurrentVersionCode: 1

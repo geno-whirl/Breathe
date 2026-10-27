@@ -1,32 +1,33 @@
-<p>A calm breathing companion built around four stages: <b>inhale, hold, exhale, hold</b>. It keeps guiding you with sound and vibration while the phone is locked, and its home-screen widget does everything the app does.</p>
+A calm breathing companion built around four stages: inhale, hold, exhale, hold. It keeps guiding you with sound and vibration while the phone is locked, and its home-screen widget does everything the app does.
 
-<p><b>Your pattern, your way</b></p>
-<ul>
-<li>Set each stage as a whole number; use 0 to skip a stage.</li>
-<li>Time it in seconds per stage, by total cycle length, or by breaths per minute.</li>
-<li>Presets for box breathing, 4-7-8, coherent breathing (5.5 per minute) and more, plus your own.</li>
-<li>Sessions can be endless, a number of minutes, or a number of cycles.</li>
-</ul>
+YOUR PATTERN, YOUR WAY
+• Set each stage as a whole number; use 0 to skip a stage.
+• Time it in seconds per stage, in counts of a length you choose, by total cycle length, or by breaths per minute.
+• Presets for box breathing, 4-7-8, 1-4-2, coherent breathing (5.5 per minute) and more. Save your own, and update, rename or delete them.
+• Sessions can be endless, a number of minutes, or a number of cycles.
+• Tap the animation to count down in seconds or in counts.
 
-<p><b>Guided by sound</b></p>
-<ul>
-<li>Singing bowl, chime, soft tone, marimba or spoken cues, all synthesised on the device.</li>
-<li>Every cue is tuned to the same scale, so they sound good together.</li>
-<li>Volume, optional hold cues and an optional soft tick each second.</li>
-</ul>
+GUIDED BY SOUND
+• Singing bowl, chime, soft tone, marimba or spoken cues, all synthesised on the device.
+• Every cue is tuned to the same scale, so they sound good together.
+• Volume, optional hold cues and an optional soft tick each second.
+• A closing chord and bell when a timed session ends.
 
-<p><b>Guided by touch</b></p>
-<ul>
-<li>Pulses: a rising double tap to breathe in, a falling one to breathe out.</li>
-<li>Wave: soft taps that strengthen through the inhale and fade through the exhale, so you can follow with your eyes closed.</li>
-<li>Uses your phone's built-in haptic effects when available.</li>
-</ul>
+GUIDED BY TOUCH
+• Pulses: a rising double tap to breathe in, a falling one to breathe out.
+• Wave: soft taps that strengthen through the inhale and fade through the exhale, so you can follow with your eyes closed.
+• Uses your phone's built-in haptic effects when available, with adjustable strength.
 
-<p><b>Works with the screen off</b></p>
-<p>Sessions keep running when the phone is locked. The notification shows the current stage and a countdown, with Pause and Stop buttons on the lock screen.</p>
+WORKS WITH THE SCREEN OFF
+Sessions keep running when the phone is locked. The notification shows the current stage and a countdown, with Pause and Stop buttons on the lock screen.
 
-<p><b>A widget that does everything</b></p>
-<p>Start, pause and stop, follow the current stage on a progress bar, switch presets and toggle sound or vibration, all from the home screen.</p>
+A WIDGET THAT DOES EVERYTHING
+Start, pause and stop, follow the current stage on a progress bar, switch presets and toggle sound or vibration, all from the home screen.
 
-<p><b>Beautiful and private</b></p>
-<p>A glowing orb, a box or a ring animation in light and dark themes. No ads, no tracking, no account and no internet permission.</p>
+YOUR HISTORY
+Every session is recorded with its date, pattern, breathing time and cycles. See your totals for the last 7 days and all time, and export everything as a CSV file.
+
+BEAUTIFUL AND PRIVATE
+A glowing orb, a box or a ring animation in light and dark themes. No ads, no tracking, no account and no internet permission: your data never leaves your phone.
+
+Breathe is free and open-source software, licensed under the GPL 3.0 or later.

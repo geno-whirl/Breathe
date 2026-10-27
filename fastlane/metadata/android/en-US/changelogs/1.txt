@@ -1,1 +1,1 @@
-First release: four-stage breathing with three timing modes, presets, sound and vibration cues, lock-screen sessions and a home-screen widget.
+First release: four-stage breathing with four timing modes, editable presets, sound and vibration cues, lock-screen sessions, a home-screen widget and session history.

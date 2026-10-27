@@ -40,7 +40,9 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 
 ## Install
 
-Every push builds a debug APK in GitHub Actions. Open the latest **Android** workflow run, download the `breathe-debug-apk` artifact, unzip it and install `app-debug.apk` (allow installs from unknown sources). Builds are signed with the committed `app/debug.keystore`, so a newer build installs over an older one.
+Breathe is being published on F-Droid and Google Play. Signed APKs of each release are attached to the [GitHub releases](https://github.com/geno-whirl/Breathe/releases).
+
+For a test build: every push builds a debug APK in GitHub Actions. Open the latest **Android** workflow run, download the `breathe-debug-apk` artifact, unzip it and install `app-debug.apk` (allow installs from unknown sources). Builds are signed with the committed `app/debug.keystore`, so a newer build installs over an older one.
 
 To add the widget, long-press the home screen, choose **Widgets**, then **Breathe**.
 
@@ -53,7 +55,13 @@ Requires JDK 17 and the Android SDK (API 36).
 ```
 ./gradlew assembleDebug         # app/build/outputs/apk/debug/app-debug.apk
 ./gradlew testDebugUnitTest     # timing-model unit tests
+./gradlew bundleRelease         # release bundle; signed only if an upload key is configured
+./gradlew testDebugUnitTest -Pscreenshots --tests '*StoreScreenshots'   # store screenshots
 ```
+
+## Publishing
+
+See [PUBLISHING.md](PUBLISHING.md) for releasing to F-Droid and Google Play. The store listing lives in `fastlane/metadata/android/`, the F-Droid build recipe in `fdroid/` and the privacy policy in [PRIVACY.md](PRIVACY.md).
 
 ## Code map
 
