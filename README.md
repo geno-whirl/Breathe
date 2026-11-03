@@ -15,7 +15,7 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 - Session length: endless, a number of minutes, or a number of cycles. A number of cycles shows the total time; a number of minutes shows how many cycles that is.
 - Edits made during a session take effect from the next stage.
 - The countdown can show seconds or counts: in Count, Cycle and Per-minute modes, tap the animation to switch (the optional tick follows it). The choice is remembered.
-- At the end of a timed session: a closing chord and bell, three taps and a fading swell, and a "Session complete" note with what you did.
+- At the end of a timed session: a closing chord and bell, two soft taps and a light fading swell, and a "Session complete" note with what you did.
 
 **Sound**: Bowl, Chime, Soft, Wood (marimba) or spoken Voice cues. The tones are synthesised on the device like the real instruments (struck, decaying partials with a soft mallet and a small stereo room), in A major pentatonic so every cue sounds good with the others, with a volume setting, an option to cue the holds, and an optional faint tick every second.
 
@@ -32,7 +32,7 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 - **Ring**: the stage ring only.
 - Can be turned off. Natural (eased) or linear pacing, optional countdown.
 
-**Locked phone**: a foreground service with a partial wake lock keeps the cues going with the screen off. The notification shows the stage and a countdown, with Pause/Resume and Stop.
+**Locked phone**: a foreground service with a partial wake lock keeps the cues going with the screen off, and an inaudible audio stream (on by default) stops battery managers from suspending the app. The notification shows the stage and a countdown, with Pause/Resume and Stop. History marks sessions in which the phone still held the cues back.
 
 **Widget** (resizable)
 - Large size: current stage, countdown, a breath-level progress bar, start/pause, stop, previous/next preset, and sound and vibration toggles.

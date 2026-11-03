@@ -241,6 +241,12 @@ fun SettingsScreen(
         Spacer(gap)
 
         SectionCard(stringResource(R.string.locked_phone)) {
+            ToggleRow(
+                stringResource(R.string.keep_awake_audio),
+                stringResource(R.string.keep_awake_audio_hint),
+                checked = settings.keepAwakeAudio,
+            ) { on -> onSettings { it.copy(keepAwakeAudio = on) } }
+            Spacer(Modifier.height(8.dp))
             Text(
                 stringResource(R.string.locked_phone_text),
                 style = MaterialTheme.typography.bodyMedium,

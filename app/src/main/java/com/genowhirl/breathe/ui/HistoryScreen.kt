@@ -201,6 +201,14 @@ private fun SessionRow(record: SessionRecord, onLongPress: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                 )
+                if (record.lateWakeups > 0) {
+                    // The phone suspended the app: cues were late or skipped this many times.
+                    Text(
+                        plural(R.plurals.history_late_wakeups, record.lateWakeups),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
             }
             Spacer(Modifier.width(8.dp))
             Column(horizontalAlignment = Alignment.End) {

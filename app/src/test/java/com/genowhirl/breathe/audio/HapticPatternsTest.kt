@@ -35,6 +35,9 @@ class HapticPatternsTest {
             assertEquals(finish.timings.size, finish.amplitudes.size)
             val longestStage = listOf(Cue.INHALE, Cue.EXHALE, Cue.HOLD_IN).maxOf { HapticPatterns.cue(it, 0.6f, vary).durationMs }
             assertTrue(finish.durationMs > 3 * longestStage)
+            // Gentle: never stronger than a stage cue at the same setting.
+            val strongestStage = listOf(Cue.INHALE, Cue.EXHALE).maxOf { HapticPatterns.cue(it, 0.6f, vary).amplitudes.max() }
+            assertTrue(finish.amplitudes.max() <= strongestStage)
         }
         // Without strength control the waveform must alternate off/on.
         val onOff = HapticPatterns.cue(Cue.FINISH, 0.6f, false)

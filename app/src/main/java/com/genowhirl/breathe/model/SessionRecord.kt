@@ -18,6 +18,8 @@ data class SessionRecord(
     val completed: Boolean,
     val presetName: String,
     val pattern: BreathPattern,
+    /** Times the cue timer woke up more than 2 s late, i.e. the phone suspended the app. */
+    val lateWakeups: Int = 0,
 )
 
 /** A short description of the pattern's timing, e.g. "4-7-8-0, 16 s cycle". */
@@ -37,7 +39,7 @@ private fun trim(v: Double): String = if (v == Math.floor(v)) v.toLong().toStrin
 object SessionCsv {
     val header = listOf(
         "start", "end", "duration_seconds", "cycles", "completed", "preset",
-        "inhale", "hold_in", "exhale", "hold_out", "timing_mode", "cycle_seconds",
+        "inhale", "hold_in", "exhale", "hold_out", "timing_mode", "cycle_seconds", "late_wakeups",
     )
 
     /** The sessions as CSV, oldest first, with local times in ISO 8601. */
@@ -58,6 +60,7 @@ object SessionCsv {
                 r.pattern.holdOut.toString(),
                 r.pattern.mode.name.lowercase(),
                 "%.2f".format(java.util.Locale.ROOT, r.pattern.cycleMillis / 1000.0),
+                r.lateWakeups.toString(),
             )
         }
         return (listOf(header) + rows).joinToString("\n", postfix = "\n") { row -> row.joinToString(",") { escape(it) } }

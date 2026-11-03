@@ -51,22 +51,23 @@ object HapticPatterns {
     }
 
     /**
-     * The end of a session, unlike any stage cue: three firm taps, then a long swell that fades
-     * away. Without strength control, the swell becomes one long pulse.
+     * The end of a session, unlike any stage cue but gentle: two soft taps, then a slow, light
+     * swell that fades away. Without strength control, three short taps and a slightly longer one.
      */
     private fun finish(strength: Float, canVaryStrength: Boolean): Waveform {
         if (!canVaryStrength) {
-            return Waveform(longArrayOf(0, 80, 160, 80, 160, 80, 300, 500), intArrayOf(0, 255, 0, 255, 0, 255, 0, 255))
+            return Waveform(longArrayOf(0, 50, 220, 50, 220, 50, 300, 140), intArrayOf(0, 255, 0, 255, 0, 255, 0, 255))
         }
-        val timings = arrayListOf(0L, 60L, 150L, 60L, 150L, 60L, 260L)
-        val amps = arrayListOf(0, amplitude(1f, strength), 0, amplitude(1f, strength), 0, amplitude(1f, strength), 0)
-        // A swell up and back down over about a second.
+        val tap = amplitude(0.45f, strength)
+        val timings = arrayListOf(0L, 40L, 200L, 40L, 320L)
+        val amps = arrayListOf(0, tap, 0, tap, 0)
+        // A light swell up and back down over about a second, never above 60% of the strength.
         val steps = 16
         for (i in 0 until steps) {
             val t = i.toDouble() / (steps - 1)
-            val level = (sin(PI * t) * (1 - 0.35 * t)).toFloat()
-            timings += 65L
-            amps += amplitude(0.15f + 0.85f * level, strength)
+            val level = (sin(PI * t) * (1 - 0.4 * t)).toFloat()
+            timings += 60L
+            amps += amplitude(0.05f + 0.55f * level, strength)
         }
         return Waveform(timings.toLongArray(), amps.toIntArray())
     }

@@ -42,6 +42,8 @@ data class AppSettings(
     val sessionMinutes: Int = 10,
     val sessionCycles: Int = 20,
     val keepScreenOn: Boolean = true,
+    /** Play an inaudible stream during sessions so the phone cannot suspend the app when locked. */
+    val keepAwakeAudio: Boolean = true,
     val theme: ThemeMode = ThemeMode.SYSTEM,
 )
 

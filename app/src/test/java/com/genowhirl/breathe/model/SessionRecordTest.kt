@@ -10,12 +10,12 @@ class SessionRecordTest {
     @Test
     fun csvHasAHeaderAndOneRowPerSessionOldestFirst() {
         val later = SessionRecord(1_700_000_600_000, 1_700_000_900_000, 300_000, 18, true, "Box", box)
-        val earlier = SessionRecord(1_700_000_000_000, 1_700_000_120_500, 120_500, 7, false, "Box", box)
+        val earlier = SessionRecord(1_700_000_000_000, 1_700_000_120_500, 120_500, 7, false, "Box", box, lateWakeups = 3)
         val lines = SessionCsv.format(listOf(later, earlier), ZoneOffset.UTC).trimEnd().lines()
         assertEquals(3, lines.size)
         assertEquals(SessionCsv.header.joinToString(","), lines[0])
-        assertEquals("2023-11-14T22:13:20,2023-11-14T22:15:20,120,7,no,Box,4,4,4,4,seconds,16.00", lines[1])
-        assertEquals("2023-11-14T22:23:20,2023-11-14T22:28:20,300,18,yes,Box,4,4,4,4,seconds,16.00", lines[2])
+        assertEquals("2023-11-14T22:13:20,2023-11-14T22:15:20,120,7,no,Box,4,4,4,4,seconds,16.00,3", lines[1])
+        assertEquals("2023-11-14T22:23:20,2023-11-14T22:28:20,300,18,yes,Box,4,4,4,4,seconds,16.00,0", lines[2])
     }
 
     @Test

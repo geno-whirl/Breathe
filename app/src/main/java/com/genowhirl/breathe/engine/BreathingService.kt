@@ -14,6 +14,7 @@ import android.os.SystemClock
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import com.genowhirl.breathe.R
+import com.genowhirl.breathe.audio.AudioKeepAlive
 import com.genowhirl.breathe.audio.Cue
 import com.genowhirl.breathe.audio.CuePlayer
 import com.genowhirl.breathe.audio.Haptics
@@ -62,6 +63,8 @@ class BreathingService : Service() {
     private var lastNotificationAt = 0L
     private var startedAt = 0L
     private var finishing = false
+    private var lateWakeups = 0
+    private val keepAlive = AudioKeepAlive()
     private var startPreset = ""
     private var startPattern = BreathPattern()
     private var lastNotifiedStatus: Status? = null
@@ -120,6 +123,7 @@ class BreathingService : Service() {
         )
         runner = r
         finishing = false
+        lateWakeups = 0
         getSystemService(NotificationManager::class.java)?.cancel(COMPLETE_NOTIFICATION_ID)
         startedAt = System.currentTimeMillis()
         startPreset = store.matchingPreset()?.name ?: getString(R.string.custom_pattern)
@@ -191,6 +195,7 @@ class BreathingService : Service() {
                 completed = finished,
                 presetName = startPreset,
                 pattern = startPattern,
+                lateWakeups = lateWakeups,
             ),
         )
     }
@@ -220,6 +225,8 @@ class BreathingService : Service() {
                     if (nextTick < r.phaseEnd - 150) wakeAt = min(wakeAt, nextTick)
                 }
                 delay(max(4L, wakeAt - SystemClock.elapsedRealtime()))
+                // If the phone suspended the app, the wake-up comes late; count it for the history.
+                if (SystemClock.elapsedRealtime() - wakeAt > LATE_WAKEUP_MS) lateWakeups++
             }
         }
     }
@@ -392,7 +399,9 @@ class BreathingService : Service() {
 
     private fun isInteractive(): Boolean = getSystemService(PowerManager::class.java)?.isInteractive != false
 
+    /** Keeps the CPU running while breathing: a wake lock, plus the silent stream if enabled. */
     private fun acquireWakeLock() {
+        if (settings.keepAwakeAudio) keepAlive.start()
         if (wakeLock?.isHeld == true) return
         wakeLock = getSystemService(PowerManager::class.java)
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Breathe:session")
@@ -403,6 +412,7 @@ class BreathingService : Service() {
     }
 
     private fun releaseWakeLock() {
+        keepAlive.stop()
         wakeLock?.takeIf { it.isHeld }?.release()
         wakeLock = null
     }
@@ -416,6 +426,7 @@ class BreathingService : Service() {
 
         private const val CHANNEL_ID = "session"
         private const val NOTIFICATION_ID = 1
+        private const val LATE_WAKEUP_MS = 2_000L
         private const val COMPLETE_CHANNEL_ID = "complete"
         private const val COMPLETE_NOTIFICATION_ID = 2
         private const val WIDGET_FRAME_MS = 150L

@@ -205,6 +205,7 @@ class Store private constructor(private val context: Context) {
                 sessionMinutes = o.optInt("sessionMinutes", d.sessionMinutes).takeIf { it > 0 } ?: d.sessionMinutes,
                 sessionCycles = o.optInt("sessionCycles", d.sessionCycles).takeIf { it > 0 } ?: d.sessionCycles,
                 keepScreenOn = o.optBoolean("keepScreenOn", d.keepScreenOn),
+                keepAwakeAudio = o.optBoolean("keepAwakeAudio", d.keepAwakeAudio),
                 theme = enumOr(o.optString("theme"), d.theme),
             )
         }.getOrElse { AppSettings() }
@@ -230,6 +231,7 @@ class Store private constructor(private val context: Context) {
         .put("sessionMinutes", s.sessionMinutes)
         .put("sessionCycles", s.sessionCycles)
         .put("keepScreenOn", s.keepScreenOn)
+        .put("keepAwakeAudio", s.keepAwakeAudio)
         .put("theme", s.theme.name)
 
     companion object {

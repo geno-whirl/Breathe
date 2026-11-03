@@ -80,12 +80,11 @@ class Haptics(context: Context) {
             Cue.HOLD_IN, Cue.HOLD_OUT -> c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s * 0.6f)
             Cue.TICK -> c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_LOW_TICK, s * 0.5f)
             Cue.FINISH -> {
-                // Three firm clicks, then a slow swell that falls away.
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s)
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s, 150)
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s, 150)
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE, s, 250)
-                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, s)
+                // Two soft clicks, then a light, slow swell that falls away.
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s * 0.45f)
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_CLICK, s * 0.45f, 200)
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_SLOW_RISE, s * 0.5f, 300)
+                c.addPrimitive(VibrationEffect.Composition.PRIMITIVE_QUICK_FALL, s * 0.35f)
             }
         }
         return c.compose()

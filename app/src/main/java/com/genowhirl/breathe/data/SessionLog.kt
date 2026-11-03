@@ -60,6 +60,7 @@ class SessionLog private constructor(context: Context) {
         .put("completed", r.completed)
         .put("preset", r.presetName)
         .put("pattern", patternToJson(r.pattern))
+        .put("lateWakeups", r.lateWakeups)
 
     private fun fromJson(o: JSONObject) = SessionRecord(
         startedAt = o.getLong("startedAt"),
@@ -69,6 +70,7 @@ class SessionLog private constructor(context: Context) {
         completed = o.getBoolean("completed"),
         presetName = o.optString("preset"),
         pattern = patternFromJson(o.getJSONObject("pattern")),
+        lateWakeups = o.optInt("lateWakeups", 0),
     )
 
     companion object {
