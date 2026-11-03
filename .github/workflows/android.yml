@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -41,3 +43,18 @@ jobs:
           path: |
             app/build/reports/
             app/build/test-results/
+
+      # A rolling prerelease with the newest build of main, so the APK has one fixed,
+      # public download link: .../releases/download/latest/breathe.apk
+      - name: Publish latest prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk breathe.apk
+          gh release delete latest --cleanup-tag --yes || true
+          gh release create latest breathe.apk \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Latest build" \
+            --notes "Newest build of main ($(git log -1 --format='%h: %s')). Install breathe.apk on Android; it updates over earlier test builds."

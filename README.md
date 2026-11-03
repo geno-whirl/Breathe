@@ -40,7 +40,7 @@ A calm, four-stage breathing app for Android: **inhale · hold · exhale · hold
 
 ## Install
 
-Every push builds a debug APK in GitHub Actions. Open the latest **Android** workflow run, download the `breathe-debug-apk` artifact, unzip it and install `app-debug.apk` (allow installs from unknown sources). Builds are signed with the committed `app/debug.keystore`, so a newer build installs over an older one.
+The newest build is always at **[releases/download/latest/breathe.apk](https://github.com/geno-whirl/Breathe/releases/download/latest/breathe.apk)** (open it on your phone to download and install). Every push also builds a debug APK in GitHub Actions. Open the latest **Android** workflow run, download the `breathe-debug-apk` artifact, unzip it and install `app-debug.apk` (allow installs from unknown sources). Builds are signed with the committed `app/debug.keystore`, so a newer build installs over an older one.
 
 To add the widget, long-press the home screen, choose **Widgets**, then **Breathe**.
 
